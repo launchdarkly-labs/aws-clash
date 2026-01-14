@@ -1,0 +1,157 @@
+PET STORE PRODUCT CATALOG
+
+DOG PRODUCTS
+============
+
+Product: Doggy Delights Premium Dog Food
+SKU: DD006
+Price: $54.99
+Category: Dog Food
+Description: Premium grain-free dry dog food featuring real meat as the first ingredient. This 30lb bag ensures quality nutrition for your furry friend. High in protein and essential nutrients for optimal health.
+Key Features:
+- Grain-free formula
+- Real meat as first ingredient
+- Rich in protein and omega fatty acids
+- No artificial preservatives
+- Suitable for all dog breeds
+Stock Status: In Stock (45 units available)
+Reorder Level: 10 units
+
+Product: Bark Park Buddy Water Bottles
+SKU: BP010
+Price: $16.99 each
+Category: Dog Accessories
+Description: Portable water bottle with fold-out bowl for dogs. Perfect for walks and outdoor activities.
+Key Features:
+- Leak-proof design
+- BPA-free materials
+- Fold-out bowl attachment
+- Available in blue, green, and red
+- 750ml capacity
+Special Offer: 10% off when buying 2 or more
+Stock Status: In Stock (28 units available)
+Reorder Level: 8 units
+
+Product: Paws & Play Dog Toy Set
+SKU: PP005
+Price: $34.99
+Category: Dog Toys
+Description: Complete set of durable dog toys including rope toys, squeaky balls, and chew bones.
+Key Features:
+- 8-piece variety set
+- Durable materials for heavy chewers
+- Helps with dental health
+- Various textures and sounds
+- Machine washable rope toys
+Stock Status: In Stock (15 units available)
+Reorder Level: 5 units
+
+CAT PRODUCTS
+============
+
+Product: Kitty Comfort Cat Tower
+SKU: KC015
+Price: $129.99
+Category: Cat Furniture
+Description: Multi-level cat tower with scratching posts, cozy hideaways, and play areas.
+Specifications:
+- Dimensions: 60" tall, 24" wide base
+- Material: Soft carpet and sisal rope
+- 3 platforms, 2 hideaway boxes
+- Top perch with removable cushion
+- Easy to assemble
+Stock Status: In Stock (8 units available)
+Reorder Level: 3 units
+
+Product: Purrfect Playtime Cat Toys Set
+SKU: PP020
+Price: $24.99
+Category: Cat Toys
+Description: Set of 12 interactive cat toys including feather wands, catnip mice, and balls.
+Contents:
+- 3 feather wand toys
+- 4 catnip-filled mice
+- 3 jingle balls
+- 2 laser pointer toys
+- Storage bag included
+Stock Status: In Stock (32 units available)
+Reorder Level: 10 units
+
+Product: Whiskers Feast Premium Cat Food
+SKU: WF008
+Price: $42.99
+Category: Cat Food
+Description: Premium wet and dry cat food variety pack with real fish and poultry.
+Features:
+- 24 cans of wet food (3oz each)
+- 5lb bag of dry kibble
+- Grain-free options available
+- High in taurine for heart health
+- No by-products or fillers
+Stock Status: In Stock (20 units available)
+Reorder Level: 8 units
+
+SMALL PETS
+==========
+
+Product: Cozy Critter Habitat
+SKU: CC012
+Price: $89.99
+Category: Small Pet Housing
+Description: Spacious habitat suitable for hamsters, gerbils, or guinea pigs.
+Features:
+- 30" x 18" x 18" dimensions
+- Multiple levels with ramps
+- Exercise wheel included
+- Water bottle and food dish
+- Easy-clean removable tray
+Stock Status: In Stock (6 units available)
+Reorder Level: 2 units
+
+Product: Small Pet Starter Kit
+SKU: SP001
+Price: $49.99
+Category: Small Pet Supplies
+Description: Everything needed to start caring for a small pet.
+Includes:
+- Bedding material (5lb bag)
+- Food pellets (2lb bag)
+- Water bottle
+- Food bowl
+- Exercise ball
+- Chew toys
+Stock Status: In Stock (12 units available)
+Reorder Level: 4 units
+
+BIRD SUPPLIES
+=============
+
+Product: Tweet Paradise Bird Cage
+SKU: TP018
+Price: $159.99
+Category: Bird Housing
+Description: Large bird cage suitable for parrots, cockatiels, and similar sized birds.
+Specifications:
+- 36" H x 24" W x 24" D
+- Stainless steel construction
+- Multiple perches
+- Feeding stations
+- Removable tray for easy cleaning
+- Secure lock mechanism
+Stock Status: In Stock (4 units available)
+Reorder Level: 2 units
+
+Product: Feathered Friend Seed Mix
+SKU: FF009
+Price: $19.99
+Category: Bird Food
+Description: Premium seed mix for various bird species.
+Contents:
+- Sunflower seeds
+- Millet
+- Safflower seeds
+- Nyjer seeds
+- Added vitamins and minerals
+- 10lb bag
+Stock Status: In Stock (18 units available)
+Reorder Level: 6 units
