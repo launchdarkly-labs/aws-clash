@@ -52,5 +52,5 @@ package/
 # Logs
 *.log
 
-# Competition reference materials (local only)
-# competition_details/
+# Competition reference materials (local only - CONTAINS SDK KEYS)
+competition_details/

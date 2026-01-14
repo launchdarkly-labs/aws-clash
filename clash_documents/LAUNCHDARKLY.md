@@ -1007,31 +1007,19 @@ Send prompt messages and check LaunchDarkly AI Experiment metrics in console for
 
 ## Resources & Documentation
 
+### Workshops & Tutorials
+- **[AWS Clash Pet Store Agent](https://github.com/launchdarkly-labs/aws-clash)** 
+- **[LaunchDarkly AI Config with Amazon Bedrock Workshop](https://catalog.workshops.aws/launchdarkly-ai-config-bedrock/en-US)** - AWS Workshop Studio hands-on lab
+
 ### Essential Documentation
 - **[LaunchDarkly AI Configs](https://docs.launchdarkly.com/ai)** - Complete guide to AI configuration management
 - **[Quickstart for AI Configs](https://docs.launchdarkly.com/ai/quickstart)** - Get started with LaunchDarkly AI Configs
 - **[MCP Server Setup](https://launchdarkly.com/docs/home/getting-started/mcp)** - Model Context Protocol integration guide
 - **[AWS Bedrock Models](https://docs.aws.amazon.com/bedrock/)** - Available models and pricing
 
-### Workshops & Tutorials
-- **[LaunchDarkly AI Config with Amazon Bedrock Workshop](https://catalog.workshops.aws/launchdarkly-ai-config-bedrock/en-US)** - AWS Workshop Studio hands-on lab
-  - Dynamic prompt building with Amazon Bedrock
-  - Step-by-step implementation guide
-  - Available for customer instances on request
-- **[Multi-Agent Tutorial Repository](https://github.com/launchdarkly-labs/devrel-agents-tutorial)** - Complete working examples
-- **[AWS Clash Pet Store Agent](https://github.com/launchdarkly-labs/aws-clash)** - Production-ready LangGraph agent
-  - Full agent implementation with dynamic configuration
-  - Tool registry pattern for modular tools
-  - LlamaIndex RAG integration
-  - AgentCore deployment notebook
-
-### Blog Posts & Articles
-- **[Creating Better Runtime Control with LaunchDarkly and AWS](https://launchdarkly.com/blog/runtime-control-launchdarkly-aws/)** - Ship bold AI changes without the guesswork
-
 ### Framework Documentation
 - **[LangGraph Documentation](https://python.langchain.com/docs/langgraph)** - Multi-agent orchestration framework
 - **[LlamaIndex Documentation](https://docs.llamaindex.ai/)** - RAG and retrieval framework
 
-### Additional Resources
-- **[LaunchDarkly + AWS One Pager](https://launchdarkly.com/resources)** - Quick overview of integration benefits
-- **[LaunchDarkly Experimentation](https://docs.launchdarkly.com/home/experimentation)** - A/B testing and experiment setup
+### Blog Posts & Articles
+- **[Creating Better Runtime Control with LaunchDarkly and AWS](https://launchdarkly.com/blog/runtime-control-launchdarkly-aws/)** - Ship bold AI changes without the guesswork
