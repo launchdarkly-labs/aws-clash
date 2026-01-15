@@ -1,18 +1,20 @@
 # AI Experimentation with LaunchDarkly
 
-![LaunchDarkly Logo](images/launchdarkly.png)
+<figure style="margin: 20px 0;">
+  <img src="images/launchdarkly.png" alt="LaunchDarkly Logo" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">LaunchDarkly Logo</figcaption>
+</figure>
 
 LaunchDarkly revolutionizes how builders and engineers approach AI development by bringing sophisticated experimentation capabilities directly into production environments. With LaunchDarkly's AI Configs, you gain unprecedented control over your AI systems through a specialized runtime management system that lets you dynamically control model selection and parameters from a central hub, target specific user segments with tailored AI configurations, run live experiments comparing different AI setups, and collect real-time feedback and metrics to continuously optimize performance. This isn't just feature flagging — it's a complete AI experimentation platform that empowers you to iterate fearlessly in production, test hypotheses with real users, and make data-driven decisions about which models and parameters deliver the best results. Whether you're fine-tuning prompt strategies, comparing models, or optimizing temperature settings for different user personas, LaunchDarkly gives you the confidence to experiment boldly while maintaining full control over your AI's behavior in production.
 
 ## Scenario
 
-You are tasked to experiment between different AI models to determine which works best for Pet Store agents based on performance, cost, and user experience metrics.
+You are tasked to experiment between different AI models to determine which works better for Pet Store agents based on performance, cost, and user experience metrics.
 
 ## Success Criteria and Score Validation
 
 - LaunchDarkly account configured with proper tokens
 - AI Config created with multiple model variations
-- MCP server integrated with your IDE for configuration management
 - Agent successfully instrumented to use LaunchDarkly AI Configs
 - Experiment running with measurable metrics
 - Data-driven decision on optimal model configuration
@@ -27,73 +29,67 @@ You are tasked to experiment between different AI models to determine which work
 
 ### 1. Sign Up to LaunchDarkly and Configure Access
 
-**Estimated Time: 15 minutes**
-
 #### Understanding Token Types
 
-LaunchDarkly uses two types of keys that serve different purposes:
-
-- **API Access Token** (starts with `api-`): Used by the MCP server in your IDE to create and manage AI Configs programmatically
+LaunchDarkly uses two types of keys:
+- **API Access Token** (starts with `api-`): Used by MCP server in your IDE to create/manage AI Configs programmatically
 - **SDK Key** (starts with `sdk-`): Used in your agent code to retrieve AI configurations at runtime
 
 Both are needed for the complete workflow.
 
-#### Create Your LaunchDarkly Account
+**1a.** Create your LaunchDarkly account if you don't have one by going to [LaunchDarkly's signup page](https://launchdarkly.com)
 
-1. Navigate to [LaunchDarkly signup](https://launchdarkly.com)
-2. Complete registration and verify your email
-3. Log in to your new account
+**1b.** Generate a LaunchDarkly API Access Token for MCP server and API calls
+- Navigate to **Organization Settings** → **Authorization** → **Create token**
+- **Name**: `workshop-mcp-token` (or any descriptive name)
+- **Role**: Select **Writer** or **LaunchDarkly Developer**
+- Copy and save this token immediately (only shown once)
 
-#### Generate API Access Token (for MCP Server)
+<figure style="margin: 20px 0;">
+  <img src="images/api-token-create.png" alt="Create API Token" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Creating a new API access token</figcaption>
+</figure>
 
-The API access token allows your IDE to communicate with LaunchDarkly to create and manage AI Configs.
+<figure style="margin: 20px 0;">
+  <img src="images/api-token-name.png" alt="Name API Token" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Configuring token name and role</figcaption>
+</figure>
 
-1. Navigate to **Organization Settings** (gear icon) → **Authorization**
-2. In the "Access tokens" section, click **Create token**
+<figure style="margin: 20px 0;">
+  <img src="images/api-token-copy.png" alt="Copy API Token" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Copying the API token (shown only once)</figcaption>
+</figure>
 
-![Create API Token](images/api-token-create.png)
+**1c.** Retrieve the LaunchDarkly SDK Key from your environment
+- Navigate to **Project settings** → **Environments** → Select your environment
+- Copy the **SDK key** (starts with `sdk-`)
 
-3. Configure the token:
-   - **Name**: `workshop-mcp-token` (or any descriptive name)
-   - **Role**: Select **Writer** or **LaunchDarkly Developer**
-   - **API version**: Use default (latest)
-   - Leave "This is a service token" unchecked
+<figure style="margin: 20px 0;">
+  <img src="images/project_settings.png" alt="Access Project Settings" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Accessing project settings from the sidebar</figcaption>
+</figure>
 
-![Name API Token](images/api-token-name.png)
+<figure style="margin: 20px 0;">
+  <img src="images/image3.png" alt="Environments View" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Navigate to Environments tab and select your environment (Test or Production)</figcaption>
+</figure>
 
-4. Click **Save token**
-5. **IMPORTANT**: Copy the token immediately - it's only shown once!
+<figure style="margin: 20px 0;">
+  <img src="images/sdk-key.png" alt="SDK Key Location" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Copy the SDK key from the environment settings</figcaption>
+</figure>
 
-![Copy API Token](images/api-token-copy.png)
+**1d.** Store the LaunchDarkly SDK Key securely
+- Add to AWS Secrets Manager in your AWS Account, OR
+- Set as environment variable: `export LAUNCHDARKLY_SDK_KEY="sdk-xxxxx"`
 
-6. Save this token securely - you'll use it in your MCP configuration
-
-#### Retrieve SDK Key (for Agent Code)
-
-The SDK key allows your agent code to retrieve AI configurations at runtime.
-
-1. Navigate to **Project settings** (gear icon in sidebar)
-
-![Access Project Settings](images/project_settings.png)
-
-2. Go to **Environments** → Select your environment (Test or Production)
-3. Copy the **SDK key** (starts with `sdk-`)
-
-![SDK Key Location](images/sdk-key.png)
-
-4. Save this key - you'll use it as `LAUNCHDARKLY_SDK_KEY` in your environment variables
-
-#### Configure MCP Server in Your IDE
-
-The Model Context Protocol (MCP) server enables your IDE to interact with LaunchDarkly using natural language.
+**1e.** Configure LaunchDarkly MCP server in your IDE (optional but recommended)
 
 **Initial Setup:**
 
-Choose your IDE and create/update the appropriate configuration file:
-
+Create/update your IDE's MCP configuration file:
 - **For Cursor**: `~/.cursor/mcp.json`
 - **For Claude Desktop**: `claude_desktop_config.json`
-- **For other IDEs**: Check your IDE's MCP configuration documentation
 
 ```json
 {
@@ -115,124 +111,64 @@ Choose your IDE and create/update the appropriate configuration file:
 }
 ```
 
-Replace `api-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` with your actual API access token.
-
 **To Edit/Update MCP Configuration:**
-
-1. Open your MCP configuration file in your IDE
-2. Modify the `--api-key` value to update your token
-3. You can also add additional parameters like `--project` to specify a default project
-4. Save the file and restart your IDE/AI client
-5. Verify the LaunchDarkly MCP server appears in your IDE's MCP server list
-
-#### Store SDK Key Securely
-
-For the agent code, store the SDK key in AWS Secrets Manager:
-
-```bash
-aws secretsmanager create-secret \
-  --name "launchdarkly-sdk-key" \
-  --secret-string "sdk-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" \
-  --description "LaunchDarkly SDK key for pet store agent"
-```
-
-Or set it as an environment variable:
-
-```bash
-export LAUNCHDARKLY_SDK_KEY="sdk-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-```
-
-**Validation Checkpoint:**
-- ✅ LaunchDarkly account created
-- ✅ API access token generated and saved
-- ✅ SDK key retrieved and stored
-- ✅ MCP server configured in IDE
-- ✅ IDE recognizes LaunchDarkly MCP server
+1. Open your MCP configuration file
+2. Update the `--api-key` value with your new token
+3. Add additional parameters like `--project` to specify a default project
+4. Save and restart your IDE
+5. Verify LaunchDarkly MCP server appears in your IDE's server list
 
 ---
 
 ### 2. Create Your First AI Config
 
-**Estimated Time: 20 minutes**
+**2a.** Create a new LaunchDarkly AI Config - Agent-based config with variations for different models
 
-#### Using MCP Server (Recommended)
-
-With the MCP server configured, you can create AI Configs using natural language directly in your IDE.
-
-**Example Command:**
+**Using MCP Server (Recommended):**
 
 ```
-Create an AI Config in project pet-store-agent called "Pet Store Agent" with key pet-store-agent. Make it agent-based with a variation named base-config. Select a model provider and model of your choice, set temperature to 0.7, and max tokens to 4096. Set the instructions to: [Your agent instructions here]. Then enable targeting in the production environment to serve the base-config variation by default.
+Create an AI Config in project pet-store-agent called "Pet Store Agent" with key pet-store-agent.
+Make it agent-based with a variation named base-config.
+Select a model provider and model of your choice, set temperature to 0.7, and max tokens to 4096.
+Include your agent instructions (execution plan, business rules, response format).
+Then enable targeting to serve the base-config variation by default.
 ```
-
-The MCP server will:
-- Create the AI Config
-- Configure the variation
-- Enable targeting
-- Confirm completion
-
-**Verify Creation:**
-- Check your IDE for MCP server confirmation
-- Visit LaunchDarkly dashboard to see the new AI Config
 
 <details>
 <summary><b>Alternative: Using LaunchDarkly UI</b></summary>
 
-1. **Access AI Configs**
-   - In LaunchDarkly dashboard sidebar, navigate to **AI Configs**
-   - Click **Create AI Config**
-   - Select `🤖 Agent-based` configuration type
-
-![Create Agent Config](images/create_agent.png)
-
-2. **Configure Basic Settings**
+1. Navigate to **AI Configs** → **Create AI Config** → Select `🤖 Agent-based`
+2. Configure:
    - **Name**: Pet Store Agent
-   - **Key**: `pet-store-agent` (this is what you'll reference in code)
+   - **Key**: `pet-store-agent`
    - **Variation name**: `base-config`
-
-3. **Set Model Configuration**
-   - **Model provider**: Select your preferred provider (e.g., AWS Bedrock, Anthropic, OpenAI)
+3. Set model configuration:
+   - **Model provider**: Select your preferred provider
    - **Model**: Select your preferred model
-   - **Parameters**:
-     - Click **Add parameters**
-     - Temperature: `0.7`
-     - Max tokens: `4096`
+   - **Parameters**: Add temperature (0.7) and max_tokens (4096)
+4. Add your agent instructions in the **Goal or task** field
+5. Review and save
+6. Go to **Targeting** tab → Edit default rule → Select `base-config` → Save
 
-4. **Configure Agent Instructions**
-   - In the **Goal or task** field, enter your agent's system prompt
-   - This defines how your agent behaves and responds
-   - You can include business rules, execution plans, and response schemas
+<figure style="margin: 20px 0;">
+  <img src="images/create_agent.png" alt="Create Agent Config" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Creating a new agent-based AI Config</figcaption>
+</figure>
 
-5. **Review and Save**
-   - Click **Review and save**
-   - Verify all settings
-   - Click **Save**
-
-6. **Enable the AI Config**
-   - Switch to the **Targeting** tab
-   - Click **Edit** on the Default rule
-   - Select your `base-config` variation
-   - Add a note: "Initial pet store agent config"
-   - Type your environment name to confirm
-   - Click **Save**
-
-![Serve Base Config](images/serve_base_config.png)
+<figure style="margin: 20px 0;">
+  <img src="images/serve_base_config.png" alt="Serve Base Config" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Enabling targeting to serve base-config variation</figcaption>
+</figure>
 
 </details>
 
-**Validation Checkpoint:**
-- ✅ AI Config created successfully
-- ✅ Base variation configured with model and parameters
-- ✅ Targeting enabled in your environment
-- ✅ Default rule serving your variation
+**Tip:** You can quickly create and iterate on AI Configs using LaunchDarkly's MCP server in your IDE.
 
 ---
 
-### 3. Instrument Your Agent with LaunchDarkly SDK
+### 3. Instrument Your Agent
 
-**Estimated Time: 30 minutes**
-
-Now integrate LaunchDarkly into your agent code to dynamically retrieve AI configurations at runtime.
+**3a.** Integrate LaunchDarkly AI Configs SDK into your AI Agent code
 
 #### Install Dependencies
 
@@ -240,36 +176,34 @@ Now integrate LaunchDarkly into your agent code to dynamically retrieve AI confi
 pip install launchdarkly-server-sdk launchdarkly-server-sdk-ai
 ```
 
-#### Core Instrumentation Pattern
+#### Universal Instrumentation Pattern
 
-Every agent follows these 5 steps, regardless of framework or tools:
+Every agent follows these 5 steps, regardless of framework:
 
-**1. Initialize LaunchDarkly SDK (once at startup)**
+**Step 1: Initialize SDK (once at startup)**
 
 ```python
 import ldclient
 from ldclient import Context
 from ldai.client import LDAIClient
 
-# Initialize SDK
 ldclient.set_config(ldclient.Config(os.environ.get('LAUNCHDARKLY_SDK_KEY')))
 ld_client = ldclient.get()
 ai_client = LDAIClient(ld_client)
 ```
 
-**2. Build Context (per request)**
+**Step 2: Build Context (per request)**
 
 ```python
-# Build context with user attributes for targeting
 context = Context.builder("user-123") \
     .set("subscription_status", "premium") \
     .set("query_complexity", "high") \
     .build()
 ```
 
-**3. Retrieve AI Configuration from LaunchDarkly**
+**Step 3: Retrieve Configuration**
 
-Use the **Agent-based API** (`agent_config()`) for full agent configuration:
+Use `agent_config()` for full agent configuration:
 
 ```python
 from ldai.client import AIAgentConfigDefault, ModelConfig, ProviderConfig
@@ -285,57 +219,39 @@ agent_config = ai_client.agent_config(
     )
 )
 
-# Extract everything you need
+# Extract configuration
 model_name = agent_config.model.name
 instructions = agent_config.instructions
-parameters = agent_config.model.parameters  # temperature, max_tokens, etc.
-tools_config = parameters.get("tools", [])  # Tool definitions from LaunchDarkly
+parameters = agent_config.model.parameters
+tools_config = parameters.get("tools", [])
 tracker = agent_config.tracker
 ```
 
-**4. Build Tools Dynamically from Configuration**
-
-Tools are defined in LaunchDarkly AI Config and built dynamically in your code:
+**Step 4: Build Tools Dynamically**
 
 ```python
 def build_tools_from_config(tools_config, global_config, aws_region):
-    """Build tools dynamically from LaunchDarkly configuration"""
     tools = []
-
     for tool_config in tools_config:
         tool_name = tool_config.get("name")
-
-        # Merge global config with tool-specific config
         tool_custom = tool_config.get("custom", {})
         tool_params = tool_config.get("parameters", {})
         merged_config = {**global_config, **tool_params, **tool_custom}
 
-        # Get tool builder and create tool
         if tool_name in TOOL_BUILDERS:
             tool = TOOL_BUILDERS[tool_name](merged_config, aws_region)
             tools.append(tool)
-
     return tools
-
-# Example: Tool builders handle different implementations
-TOOL_BUILDERS = {
-    "retrieve_product_info": build_rag_tool,  # Works with Bedrock KB or LlamaIndex
-    "get_inventory": build_inventory_tool,     # Works with Lambda or mock data
-    "get_user_by_id": build_user_tool,         # Adapts based on config
-}
 ```
 
-**Key insight:** LaunchDarkly stores tool configurations, your code builds actual tool objects based on those configs.
+**Step 5: Track Metrics Manually**
 
-**5. Track Metrics Manually**
-
-Always use manual tracking methods (not provider-specific):
+Use manual tracking methods (not provider-specific):
 
 ```python
 tracker = agent_config.tracker
 
 try:
-    # Track execution time
     import time
     start_time = time.time()
     result = agent.invoke(input_)
@@ -344,7 +260,6 @@ try:
     tracker.track_duration(duration_ms)
     tracker.track_success()
 
-    # Track token usage (extract from your model's response)
     from ldai.tracker import TokenUsage
     usage = TokenUsage(input=100, output=200, total=300)
     tracker.track_tokens(usage)
@@ -355,275 +270,454 @@ except Exception as e:
 ```
 
 **Available tracking methods:**
-- `tracker.track_duration(ms)` - Track execution duration
-- `tracker.track_success()` - Track successful completions
-- `tracker.track_error()` - Track errors
-- `tracker.track_tokens(TokenUsage(...))` - Track token usage
-- `tracker.track_time_to_first_token(ms)` - Track latency
+- `tracker.track_duration(ms)` - Execution duration
+- `tracker.track_success()` - Successful completions
+- `tracker.track_error()` - Errors
+- `tracker.track_tokens(TokenUsage(...))` - Token usage
+- `tracker.track_time_to_first_token(ms)` - Latency
 
-#### Reference Implementations
+#### Framework-Specific Instrumentation
 
-Complete working examples for different frameworks:
+<details>
+<summary><b>LangGraph Integration Example</b></summary>
 
-- **LangGraph + Agent-based API:** [aws_clash/agent/pet_store_agent/pet_store_agent_full_ld.py](https://github.com/launchdarkly-labs/aws-clash)
-- **Strands + Config API:** [ai_config_strands/teacher_orchestrator.py](https://github.com/launchdarkly-labs/ai_config_strands)
+```python
+from langgraph.prebuilt import create_react_agent
+from langgraph.checkpoint.memory import MemorySaver
 
-These examples demonstrate the 5-step pattern applied to production agents with full tool configuration and tracking.
+class PetStoreAgent:
+    def __init__(self):
+        # Step 1: Initialize LaunchDarkly
+        sdk_key = os.environ.get("LAUNCHDARKLY_SDK_KEY")
+        ldclient.set_config(LDConfig(sdk_key))
+        self.ld = ldclient.get()
+        self.ai = LDAIClient(self.ld)
+        self.checkpointer = MemorySaver()
 
-**Validation Checkpoint:**
-- ✅ LaunchDarkly SDK integrated
-- ✅ Configuration retrieval working (`agent_config` API)
-- ✅ Tools built dynamically from LaunchDarkly configuration
-- ✅ Manual metrics tracking implemented
-- ✅ Agent successfully uses dynamic configuration
+    def invoke(self, prompt: str, user_ctx: Optional[Dict[str, Any]] = None):
+        # Step 2: Build context
+        ctx = Context.builder(user_ctx.get("user_id", "anonymous")) \
+            .set("subscription_status", user_ctx.get("subscription_status", "guest")) \
+            .build()
+
+        # Step 3: Retrieve configuration
+        agent_config = self.ai.agent_config(
+            "pet-store-agent",
+            ctx,
+            default_value=AIAgentConfigDefault(
+                enabled=False,
+                model=ModelConfig("fallback-model"),
+                provider=ProviderConfig("bedrock"),
+                instructions="Fallback instructions"
+            )
+        )
+
+        # Extract configuration
+        model_name = agent_config.model.name
+        provider = agent_config.provider.name
+        instructions = agent_config.instructions
+        parameters = agent_config.model.parameters
+        tracker = agent_config.tracker
+
+        # Step 4: Build tools dynamically
+        tools = self.build_tools(parameters.get("tools", []))
+
+        # Initialize LLM
+        llm = init_chat_model(
+            model_name,
+            model_provider=provider,
+            temperature=parameters.get("temperature", 0.7),
+            max_tokens=parameters.get("max_tokens", 4096)
+        )
+
+        # Create LangGraph agent
+        graph = create_react_agent(
+            llm,
+            tools,
+            prompt=instructions,
+            checkpointer=self.checkpointer
+        )
+
+        # Step 5: Track metrics manually
+        try:
+            import time
+            start_time = time.time()
+
+            result = graph.invoke(
+                {"messages": [HumanMessage(content=prompt)]},
+                config={"configurable": {"thread_id": user_ctx.get("thread_id", "default")}}
+            )
+
+            duration_ms = int((time.time() - start_time) * 1000)
+            tracker.track_duration(duration_ms)
+            tracker.track_success()
+
+            # Extract token usage from messages
+            usage = self._collect_token_usage(result.get("messages", []))
+            if usage:
+                tracker.track_tokens(usage)
+
+            return result
+        except Exception as e:
+            tracker.track_error()
+            raise
+
+    def _collect_token_usage(self, messages):
+        inp = out = total = 0
+        for m in messages:
+            usage = getattr(m, "usage_metadata", None) or {}
+            inp += int(usage.get("input_tokens", 0) or 0)
+            out += int(usage.get("output_tokens", 0) or 0)
+            total += int(usage.get("total_tokens", 0) or 0)
+        return TokenUsage(input=inp, output=out, total=total) if total else None
+```
+
+Complete example: [pet_store_agent_full_ld.py](https://github.com/launchdarkly-labs/aws-clash/blob/main/agent/pet_store_agent/pet_store_agent_full_ld.py)
+
+</details>
+
+<details>
+<summary><b>Strands Integration Example</b></summary>
+
+```python
+from strands import Agent, Orchestrator
+
+class TeacherOrchestrator:
+    def __init__(self):
+        # Step 1: Initialize LaunchDarkly
+        sdk_key = os.environ.get("LAUNCHDARKLY_SDK_KEY")
+        ldclient.set_config(LDConfig(sdk_key))
+        self.ld = ldclient.get()
+        self.ai = LDAIClient(self.ld)
+
+    async def run(self, query: str, user_ctx: Optional[Dict[str, Any]] = None):
+        # Step 2: Build context
+        ctx = Context.builder(user_ctx.get("user_id", "anonymous")) \
+            .set("skill_level", user_ctx.get("skill_level", "beginner")) \
+            .build()
+
+        # Step 3: Retrieve configuration
+        config = self.ai.agent_config(
+            "teacher-orchestrator",
+            ctx,
+            default_value=AIAgentConfigDefault(
+                enabled=False,
+                model=ModelConfig("fallback-model"),
+                provider=ProviderConfig("bedrock"),
+                instructions="Fallback instructions"
+            )
+        )
+
+        model_name = config.model.name
+        instructions = config.instructions
+        tracker = config.tracker
+
+        # Step 4: Build Strands orchestrator
+        orchestrator = Orchestrator(
+            model=model_name,
+            system_prompt=instructions,
+            tools=self.build_tools(config.model.parameters.get("tools", []))
+        )
+
+        # Step 5: Track metrics with callbacks
+        start_time = time.time()
+
+        try:
+            result = await orchestrator.run(
+                query,
+                callbacks=[self._create_tracking_callback(tracker, start_time)]
+            )
+
+            duration_ms = int((time.time() - start_time) * 1000)
+            tracker.track_duration(duration_ms)
+            tracker.track_success()
+
+            return result
+        except Exception as e:
+            tracker.track_error()
+            raise
+
+    def _create_tracking_callback(self, tracker, start_time):
+        """Create callback for token tracking"""
+        def on_token_usage(usage_data):
+            if usage_data:
+                tracker.track_tokens(TokenUsage(
+                    input=usage_data.get("input_tokens", 0),
+                    output=usage_data.get("output_tokens", 0),
+                    total=usage_data.get("total_tokens", 0)
+                ))
+        return on_token_usage
+```
+
+Complete example: [teacher_orchestrator.py](https://github.com/launchdarkly-labs/ai_config_strands/blob/main/teacher_orchestrator.py)
+
+</details>
 
 ---
 
-### 4. Update Targeting Configuration
+### 4. Update Target Configuration
 
-**Estimated Time: 10 minutes**
+**4a.** Modify your LaunchDarkly AI Config targeting to dynamically control which users receive configurations
 
-Practice updating your AI Config's targeting to dynamically control which users receive your AI configuration.
-
-#### Understanding Targeting
-
-Targeting rules let you:
-- Serve configurations to specific user segments
-- Create custom rules based on user attributes
-- Enable/disable configs for testing
-- Control rollout percentages
-
-#### Using MCP Server
+**Using MCP Server:**
 
 ```
-Update the pet-store-agent config targeting. Add a rule that serves base-config to users where subscription_status is "premium". Set the default rule to also serve base-config.
+Update the pet-store-agent config targeting. Add a rule that serves base-config to users
+where subscription_status is "premium". Set the default rule to also serve base-config.
 ```
 
 <details>
 <summary><b>Alternative: Using LaunchDarkly UI</b></summary>
 
-1. Navigate to your AI Config → **Targeting** tab
+1. Navigate to AI Config → **Targeting** tab
 2. Click **+ Add rule**
-3. Configure a test rule:
+3. Configure:
    - **Name**: "Premium Users"
    - **Condition**: `subscription_status` is one of `premium`
    - **Serve**: `base-config` variation
 4. Ensure Default rule serves `base-config`
-5. **Save changes**
+5. Save changes
 
-![Save Targeting Changes](images/save_changes_to_targeting.png)
+<figure style="margin: 20px 0;">
+  <img src="images/save_changes_to_targeting.png" alt="Save Targeting Changes" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Saving targeting rule changes</figcaption>
+</figure>
 
 </details>
 
-**Note:** You'll add more variations and advanced targeting rules when you create your experiment in Step 6.
-
-**Validation Checkpoint:**
-- ✅ Targeting rules created and modified
-- ✅ Understand how to use both MCP and UI for updates
-- ✅ Configuration actively serving to users
-- ✅ Ready to add tracking and monitoring
+**4b.** Practice dynamic updates using your IDE's MCP server to quickly iterate on targeting rules
 
 ---
 
 ### 5. Test AI Config and Monitor Performance (Optional)
 
-**Estimated Time: 10 minutes**
-
-Send test prompts and observe real-time behavior in the LaunchDarkly console.
-
-#### Test Different User Contexts
+**5a.** Send prompt messages using different user contexts
 
 ```python
 test_cases = [
-    {
-        "prompt": "What's the price of Doggy Delights?",
-        "context": {"user_id": "guest-001", "subscription_status": "guest"}
-    },
-    {
-        "prompt": "I need detailed care instructions for a puppy",
-        "context": {"user_id": "premium-001", "subscription_status": "premium"}
-    },
-    {
-        "prompt": "Do you have cat toys?",
-        "context": {"user_id": "user-001", "query_complexity": "simple"}
-    }
+    {"prompt": "What's the price of Doggy Delights?",
+     "context": {"user_id": "guest-001", "subscription_status": "guest"}},
+    {"prompt": "I need detailed care instructions for a puppy",
+     "context": {"user_id": "premium-001", "subscription_status": "premium"}}
 ]
 
 for test in test_cases:
     response = agent.invoke(test["prompt"], test["context"])
-    print(f"Context: {test['context']}")
-    print(f"Response: {response}\n")
 ```
 
-#### Check Monitoring Dashboard
+**5b.** Monitor AI Config behavior in the LaunchDarkly console
+- Navigate to AI Configs → `pet-store-agent` → **Monitoring** tab
+- Observe: Request volume, token usage, response times, error rates, cost per variation
 
-1. Navigate to LaunchDarkly → AI Configs → `pet-store-agent`
-2. Click **Monitoring** tab
-3. Observe:
-   - Request volume by variation
-   - Token usage per model
-   - Response times
-   - Error rates
-   - Cost per variation
-
-**Validation Checkpoint:**
-- ✅ Test prompts executed successfully
-- ✅ Metrics visible in dashboard
-- ✅ Targeting rules working as expected
-- ✅ Real-time monitoring active
+**5c.** Validate configuration changes in real-time to ensure targeting rules work as expected
 
 ---
 
 ### 6. Create an AI Experiment
 
-**Estimated Time: 25 minutes**
+**6a.** Set up your first LaunchDarkly AI Experiment to compare model performance scientifically
 
-Now compare model performance scientifically using LaunchDarkly's experimentation platform. First, add additional model variations, then set up the experiment.
+#### Configure Metrics
+
+Before creating your experiment, set up the metrics you'll track. Navigate to **Metrics** in LaunchDarkly and create these custom metrics:
+
+| Metric Name | Event Key | Type | What It Measures |
+|-------------|-----------|------|------------------|
+| **p95_total_user_latency** | `$ld:ai:duration:total` | P95 | Response speed |
+| **average_total_user_tokens** | `$ld:ai:tokens:total` | Average | Token usage |
+| **ai_cost_per_request** | `ai_cost_per_request` | Average | Dollar cost |
+| **Positive Feedback** | Built-in | Rate | User satisfaction |
+| **Negative Feedback** | Built-in | Rate | User complaints |
+
+<details>
+<summary><b>Detailed Metric Configuration</b></summary>
+
+**P95 Latency Setup:**
+1. Event key: `$ld:ai:duration:total`
+2. Type: Value/Size → Numeric, Aggregation: Sum
+3. Definition: P95, value, user, sum, "lower is better"
+4. Unit: `ms`, Name: `p95_total_user_latency`
+
+<figure style="margin: 20px 0;">
+  <img src="images/user_duration.png" alt="P95 Latency Configuration" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">P95 latency metric configuration</figcaption>
+</figure>
+
+**Token Tracking Setup:**
+- Event key: `$ld:ai:tokens:total`
+- Name: `average_total_user_tokens`
+- Aggregation: Average
+
+<figure style="margin: 20px 0;">
+  <img src="images/tokens.png" alt="Token Metric Configuration" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Token usage metric configuration</figcaption>
+</figure>
+
+**Cost Tracking Setup:**
+- Event key: `ai_cost_per_request`
+- Name: `ai_cost_per_request`
+- Aggregation: Average in dollars
+
+<figure style="margin: 20px 0;">
+  <img src="images/cost.png" alt="Cost Metric Configuration" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Cost per request metric configuration</figcaption>
+</figure>
+
+</details>
 
 #### Add Model Variations
 
-Before experimenting, add alternative models to compare:
+Before creating your experiment, add a second variation to compare:
 
 **Using MCP Server:**
 ```
-Add a variation to the pet-store-agent config called model-variant-2. Select a different model provider and model than your base-config. Adjust temperature and max tokens as needed. Keep the same instructions.
+Add a variation to the pet-store-agent config called model-variant-2.
+Select a different model provider and model than your base-config.
+Adjust temperature and max_tokens parameters as needed.
 ```
 
 <details>
 <summary><b>Alternative: Using LaunchDarkly UI</b></summary>
 
 - Go to **Variations** tab → **+ Add variation**
-- Create a new variation with a different model (different provider or model)
-- Adjust parameters (temperature, max tokens) for comparison
-- Optionally add additional variations to test
+- Create new variation with different model
+- Configure model provider, model name, and parameters
 
 </details>
 
-#### Set Up the Experiment
+#### Configure Experiment
 
-1. **Navigate to Your AI Config**
-   - Open `pet-store-agent`
-   - In right navigation, click **+** next to **Experiments**
-   - Select **Create new experiment**
+Navigate to **AI Configs → pet-store-agent**. In the right navigation menu, click the **+** (plus) sign next to **Experiments** to create a new experiment.
 
-2. **Configure Experiment Design**
-   - **Type**: `Feature change`
-   - **Name**: `Pet Store Agent Model Performance`
-   - **Hypothesis**:
-     ```
-     The alternative model will provide higher quality responses
-     for complex queries, justifying potential cost differences with
-     improved user satisfaction and fewer errors.
-     ```
+**Experiment Design:**
 
-3. **Set Up Metrics**
-   - **Randomize by**: `user`
-   - **Select metrics**:
-     1. `Positive feedback rate` (Primary - add first)
-     2. `Negative feedback rate`
-     3. `Response latency` (p95)
-     4. `Cost per request`
+**Experiment type:**
+- Keep `Feature change` selected (default)
 
-4. **Configure Audience**
-   - **AI Config**: `pet-store-agent`
-   - **Targeting rule**: **Default rule**
-   - This ensures all users can participate
+**Name:** `Pet Store Agent Model Performance`
 
-5. **Set Audience Allocation**
-   - **Control variation**: `base-config` (your original model)
-   - **Sample size**: `100%` of users
-   - **Variation split**:
-     - `base-config`: 50% (control)
-     - `model-variant-2`: 50% (treatment)
-     - Exclude other variations: 0%
+**Hypothesis and Metrics:**
 
-6. **Configure Success Criteria**
-   - **Statistical approach**: `Bayesian`
-   - **Confidence threshold**: `90%` (or `95%`)
-   - This determines when you have a winner
+**Hypothesis:** `The alternative model will provide higher quality responses for complex queries, justifying potential cost differences with improved user satisfaction and fewer errors.`
 
-7. **Launch**
-   - Click **Save**
-   - Review all settings
-   - Click **Start experiment**
-   - Confirm by typing environment name
+**Randomize by:** `user`
 
-**Validation Checkpoint:**
-- ✅ Experiment created and running
-- ✅ Primary metric configured
-- ✅ 50/50 control vs treatment split
-- ✅ Bayesian analysis enabled
+**Metrics:** Click "Select metrics or metric groups" and add:
+1. `Positive feedback rate` → Select first to set as **Primary**
+2. `Negative feedback rate`
+3. `p95_total_user_latency`
+4. `average_total_user_tokens`
+5. `ai_cost_per_request`
+
+**Audience Targeting:**
+
+**Flag or AI Config:**
+- Click the dropdown and select **pet-store-agent**
+
+**Targeting rule:**
+- Click the dropdown and select **Default rule**
+
+**Audience Allocation:**
+
+**Variations served outside of this experiment:**
+- `base-config`
+
+**Sample size:** Set to `100%` of users in this experiment
+
+**Variations split:** Click "Edit" and configure:
+- `base-config`: `50%` (control)
+- `model-variant-2`: `50%` (treatment)
+- All other variations: `0%`
+
+**Control:**
+- Select `base-config`
+
+**Statistical Approach and Success Criteria:**
+
+**Statistical approach:** `Bayesian`
+
+**Threshold:** `90%` (or 95% for mission-critical features)
+
+Click **"Save"** then **"Start experiment"** to launch.
+
+<figure style="margin: 20px 0;">
+  <img src="images/premium_model.png" alt="Experiment Configuration Example" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Example experiment configuration in LaunchDarkly</figcaption>
+</figure>
+
+**Note:** You may see a "Health warning" indicator after starting the experiment. This is normal when no variations have been exposed yet. The warning will clear once traffic starts flowing.
+
+**6b.** Generate experiment data by sending varied queries through your agent with different user contexts. Monitor the **Results** tab in your experiment to see metrics populate in real-time.
 
 ---
 
 ### 7. Run End-to-End Testing and Analyze Results (Optional)
 
-**Estimated Time: 20 minutes**
+**7a.** Send prompt messages through your instrumented agent
 
-Generate traffic and analyze experiment results.
-
-#### Generate Experiment Traffic
-
-Run your agent with varied prompts and user contexts:
+Generate varied traffic for your experiment to collect statistically significant data:
 
 ```python
 import random
 
 for i in range(50):
     user_id = f"experiment-user-{i:03d}"
-
-    # Vary user attributes
     context = {
         "user_id": user_id,
-        "subscription_status": random.choice(["guest", "active", "premium"]),
-        "query_complexity": random.choice(["simple", "medium", "high"])
+        "subscription_status": random.choice(["guest", "active", "premium"])
     }
-
-    # Test with competition-relevant prompts
     prompts = [
         "What's the price of Doggy Delights?",
         "How should I care for a new kitten?",
         "Tell me about your cat products",
         "I need food for my dog"
     ]
-
     response = agent.invoke(random.choice(prompts), context)
 ```
 
-#### Monitor Experiment Progress
+**7b.** Analyze AI Experiment metrics in the LaunchDarkly console
 
-1. Navigate to your experiment in LaunchDarkly
-2. Check **Results** tab
-3. Monitor:
-   - Sample size accumulation
-   - Primary metric trends
-   - Statistical significance
-   - Confidence intervals
-   - Winning variation probability
+Navigate to your experiment and click the **Results** tab. Monitor:
 
-#### Analyze and Make Decisions
+- **Sample size accumulation**: Ensure you have enough data (typically 100+ users per variation)
+- **Statistical significance**: Check probability to beat baseline for each metric
+- **Confidence intervals**: Review the range of likely outcomes
+- **Winning variation probability**: LaunchDarkly shows which variation is likely to win
 
-**Performance Comparison:**
-- Which variation has higher positive feedback?
-- What's the cost difference between variations?
-- Are response times acceptable?
-- Is there a clear winner?
+<figure style="margin: 20px 0;">
+  <img src="images/premium_results.png" alt="Experiment Results Analysis" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Example experiment results showing metrics and statistical analysis</figcaption>
+</figure>
 
-**Statistical Analysis:**
-- Has statistical significance been reached?
-- What's the confidence level?
-- What's the effect size?
+**Understanding Your Results:**
 
-**Business Decision:**
-- **Roll out winner**: If one variation clearly wins with acceptable cost
-- **Iterate**: If results are inconclusive, adjust parameters and retest
-- **Test new models**: If no clear winner, try different model combinations
+- **Positive feedback rate**: Primary indicator of user satisfaction
+- **Cost per request**: Balance quality improvements against cost increases
+- **Latency (p95)**: Ensure response times remain acceptable
+- **Statistical confidence**: 90% threshold means 90% probability the effect is real
 
-**Validation Checkpoint:**
-- ✅ Sufficient traffic generated (50+ samples)
-- ✅ Experiment metrics populated
-- ✅ Statistical analysis available
-- ✅ Clear decision or learning identified
+**7c.** Review performance data and make optimization decisions
+
+**Decision Framework:**
+
+| Scenario | Action |
+|----------|--------|
+| **Clear winner** (≥90% confidence, acceptable cost) | Roll out winning variation to all users |
+| **Inconclusive results** (< 90% confidence) | Collect more data or adjust variations |
+| **No significant difference** | Keep current model, test different parameters |
+| **Winner too expensive** | Iterate on prompt/parameters or test different model |
+
+**Reality Check:**
+
+- Low-variance metrics (latency, tokens) reach significance quickly (~1,000 samples)
+- High-variance metrics (cost, feedback) may need 5,000-10,000+ samples
+- You may not reach 90% on every metric—use strong signals on some metrics plus directional insights on others
+
+**Common Decision Patterns:**
+
+- **87-89% confidence + large effect size** → Often sufficient for deployment
+- **Conflicting metrics** → Consider whether cost increase justifies quality improvement
+- **System-wide effects** → A change to one agent may impact downstream agents (watch total cost)
 
 ---
 
@@ -631,27 +725,23 @@ for i in range(50):
 
 ### MCP Server Not Connecting
 - Verify API token has correct permissions (Writer or Developer role)
-- Check that MCP configuration file has correct syntax
-- Restart your IDE after configuration changes
-- Verify LaunchDarkly MCP server appears in IDE's server list
+- Check MCP configuration file syntax
+- Restart IDE after configuration changes
 
 ### SDK Key Not Working
 - Confirm you're using SDK key (starts with `sdk-`), not API token
-- Verify key is from correct environment (Test/Production)
+- Verify key is from correct environment
 - Check environment variable is set correctly
-- Ensure SDK has time to initialize before first request
 
 ### AI Config Not Returning Expected Variation
-- Check targeting rules order (rules evaluate top to bottom)
-- Verify context attributes match rule conditions exactly
-- Confirm variation is enabled in the environment
+- Check targeting rules order (evaluate top to bottom)
+- Verify context attributes match rule conditions
 - Use LaunchDarkly debugger to trace evaluation
 
 ### Experiment Not Collecting Data
 - Verify experiment is in "Running" status
 - Ensure metrics are being tracked in agent code
-- Check that user contexts are being created correctly
-- Confirm traffic is reaching the default rule being experimented on
+- Check user contexts are created correctly
 
 ---
 
@@ -660,12 +750,8 @@ for i in range(50):
 ### Documentation
 - [LaunchDarkly AI Configs](https://docs.launchdarkly.com/ai)
 - [LaunchDarkly MCP Server](https://launchdarkly.com/docs/home/getting-started/mcp)
-- [LaunchDarkly Experimentation](https://docs.launchdarkly.com/home/experimentation)
 - [Tracking AI Metrics](https://docs.launchdarkly.com/sdk/features/tracking-ai-metrics)
 
 ### Workshops & Tutorials
 - [LaunchDarkly AI Config with Amazon Bedrock Workshop](https://catalog.workshops.aws/launchdarkly-ai-config-bedrock/en-US)
 - [LaunchDarkly Multi-Agent Tutorial](https://github.com/launchdarkly-labs/devrel-agents-tutorial)
-
-### Blog Posts
-- [Creating Better Runtime Control with LaunchDarkly and AWS](https://launchdarkly.com/blog/runtime-control-launchdarkly-aws/)
