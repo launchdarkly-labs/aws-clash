@@ -2,14 +2,14 @@
 
 <figure style="margin: 20px 0;">
   <img src="images/launchdarkly.png" alt="LaunchDarkly Logo" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">LaunchDarkly Logo</figcaption>
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">LaunchDarkly Logo</figcaption>
 </figure>
 
-LaunchDarkly's AI Configs let you swap models, tweak prompts, and test different configurations **without redeploying code**. Think of it as A/B testing for AI - change your model from Claude to GPT to Llama, adjust parameters on the fly, and see which setup actually performs best with real data. You can target specific users ("premium customers get the fancy model"), run controlled experiments, and track metrics like cost, latency, and quality. Make changes in a web UI and your agent instantly picks them up. No more guessing which model is best or hardcoding configurations. Just experiment, measure, and ship the winner. 🚀
+LaunchDarkly's AI Configs let you swap models, tweak prompts, and test different configurations **without redeploying code**. Think of it as A/B testing for AI - change your model from Claude to GPT to Llama, adjust parameters on the fly, and see which setup actually performs best with real data. You can target specific users ("premium customers get the fancy model"), run controlled experiments, and track token efficiency. Make changes in a web UI and your agent instantly picks them up. No more guessing which model is best or hardcoding configurations. Just experiment, measure, and ship the winner. 🚀
 
 ## What You'll Build
 
-Your mission: Figure out which AI model actually works best for your Pet Store agent. Is Claude faster? Is GPT cheaper? Does Llama give better answers? Instead of guessing, you'll run a proper experiment with real data. Set up two (or more!) model variations, split traffic between them, and let the metrics tell you which one wins.
+Your mission: Figure out which AI model is most token-efficient for your Pet Store agent. Instead of guessing, you'll run a proper experiment with real data. Set up two (or more!) model variations, split traffic between them, and let the metrics tell you which one uses tokens more efficiently.
 
 ## What Success Looks Like
 
@@ -17,8 +17,8 @@ By the end, you'll have:
 - ✅ LaunchDarkly account hooked up and ready to roll
 - ✅ An AI Config with at least 2 different model variations
 - ✅ Your agent code instrumented to grab configs from LaunchDarkly
-- ✅ A live experiment collecting real performance data
-- ✅ Actual metrics showing which model performs best (cost, speed, quality)
+- ✅ A live experiment collecting real token usage data
+- ✅ Actual metrics showing which model is more efficient
 
 **Pro tip:** This is one of the more straightforward competition sections - most of the code patterns are already written for you. Plus, you get to play with multiple AI models without writing a ton of code. Win-win!
 
@@ -45,24 +45,24 @@ Grab both and you're golden. 👍
 **1b.** Generate a LaunchDarkly API Access Token for MCP server and API calls
 - Navigate to **Organization Settings** → **Authorization** → **Create token**
 - **Name**: `workshop-mcp-token` (or any descriptive name)
-- **Role**: Select **Writer** or **LaunchDarkly Developer** ([learn more about roles](https://docs.launchdarkly.com/home/account/role-concepts))
+- **Role**: Select **Writer** or **LaunchDarkly Developer** 
 - Copy and save this token immediately (only shown once)
 
 For detailed instructions, see [Creating API access tokens](https://docs.launchdarkly.com/home/account-security/api-access-tokens#creating-api-access-tokens)
 
 <figure style="margin: 20px 0;">
   <img src="images/api-token-create.png" alt="Create API Token" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Creating a new API access token</figcaption>
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">Creating a new API access token</figcaption>
 </figure>
 
 <figure style="margin: 20px 0;">
   <img src="images/api-token-name.png" alt="Name API Token" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Configuring token name and role</figcaption>
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">Configuring token name and role</figcaption>
 </figure>
 
 <figure style="margin: 20px 0;">
   <img src="images/api-token-copy.png" alt="Copy API Token" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Copying the API token (shown only once)</figcaption>
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">Copying the API token (shown only once)</figcaption>
 </figure>
 
 **1c.** Retrieve the LaunchDarkly SDK Key from your environment
@@ -73,17 +73,17 @@ For more details, see [Finding your SDK key](https://docs.launchdarkly.com/sdk/c
 
 <figure style="margin: 20px 0;">
   <img src="images/project_settings.png" alt="Access Project Settings" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Accessing project settings from the sidebar</figcaption>
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">Accessing project settings from the sidebar</figcaption>
 </figure>
 
 <figure style="margin: 20px 0;">
   <img src="images/image3.png" alt="Environments View" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Navigate to Environments tab and select your environment (Test or Production)</figcaption>
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">Navigate to Environments tab and select your environment (Test or Production)</figcaption>
 </figure>
 
 <figure style="margin: 20px 0;">
   <img src="images/sdk-key.png" alt="SDK Key Location" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Copy the SDK key from the environment settings</figcaption>
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">Copy the SDK key from the environment settings</figcaption>
 </figure>
 
 **1d.** Store the LaunchDarkly SDK Key securely
@@ -168,12 +168,12 @@ See detailed instructions: [Creating AI Configs](https://docs.launchdarkly.com/h
 
 <figure style="margin: 20px 0;">
   <img src="images/create_agent.png" alt="Create Agent Config" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Creating a new agent-based AI Config</figcaption>
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">Creating a new agent-based AI Config</figcaption>
 </figure>
 
 <figure style="margin: 20px 0;">
   <img src="images/serve_base_config.png" alt="Serve Base Config" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Enabling targeting to serve base-config variation</figcaption>
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">Enabling targeting to serve base-config variation</figcaption>
 </figure>
 
 </details>
@@ -401,7 +401,7 @@ class PetStoreAgent:
 ```python
 from strands import Agent, Orchestrator
 
-class TeacherOrchestrator:
+class PetStoreAgent:
     def __init__(self):
         # Step 1: Initialize LaunchDarkly
         sdk_key = os.environ.get("LAUNCHDARKLY_SDK_KEY")
@@ -409,15 +409,15 @@ class TeacherOrchestrator:
         self.ld = ldclient.get()
         self.ai = LDAIClient(self.ld)
 
-    async def run(self, query: str, user_ctx: Optional[Dict[str, Any]] = None):
+    async def invoke(self, prompt: str, user_ctx: Optional[Dict[str, Any]] = None):
         # Step 2: Build context
         ctx = Context.builder(user_ctx.get("user_id", "anonymous")) \
-            .set("skill_level", user_ctx.get("skill_level", "beginner")) \
+            .set("subscription_status", user_ctx.get("subscription_status", "guest")) \
             .build()
 
         # Step 3: Retrieve configuration
         config = self.ai.agent_config(
-            "teacher-orchestrator",
+            "pet-store-agent",
             ctx,
             default_value=AIAgentConfigDefault(
                 enabled=False,
@@ -431,19 +431,19 @@ class TeacherOrchestrator:
         instructions = config.instructions
         tracker = config.tracker
 
-        # Step 4: Build Strands orchestrator
-        orchestrator = Orchestrator(
+        # Step 4: Build Strands agent
+        agent = Agent(
             model=model_name,
             system_prompt=instructions,
             tools=self.build_tools(config.model.parameters.get("tools", []))
         )
 
-        # Step 5: Track metrics with callbacks
+        # Step 5: Track metrics
         start_time = time.time()
 
         try:
-            result = await orchestrator.run(
-                query,
+            result = await agent.run(
+                prompt,
                 callbacks=[self._create_tracking_callback(tracker, start_time)]
             )
 
@@ -499,7 +499,7 @@ where subscription_status is "premium". Set the default rule to also serve base-
 
 <figure style="margin: 20px 0;">
   <img src="images/save_changes_to_targeting.png" alt="Save Targeting Changes" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Saving targeting rule changes</figcaption>
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">Saving targeting rule changes</figcaption>
 </figure>
 
 </details>
@@ -536,95 +536,15 @@ For more details, see [Monitoring AI Configs](https://docs.launchdarkly.com/home
 
 ### 6. Run Your First AI Experiment (This Is Where It Gets Cool!)
 
-**6a.** Here's where the magic happens. You're going to run a proper A/B test between two models and watch real metrics roll in. It's like science, but for AI. 🧪
+**6a.** Here's where the magic happens. You're going to run a proper A/B test between two models and see which one is more token-efficient. It's like science, but for AI. 🧪
 
-**What you'll do:** Create variations with different models, split traffic 50/50, define metrics you care about (speed, cost, quality), and let LaunchDarkly track everything automatically.
+**What you'll do:** Create variations with different models, split traffic 50/50, and LaunchDarkly will track token usage automatically.
 
 For detailed guidance, see [Experimenting with AI Configs](https://docs.launchdarkly.com/home/ai-configs/experimentation)
 
 #### Add Model Variations
 
-**Using MCP Server:**
-```
-Add a variation to the pet-store-agent config called model-variant-2.
-Select a different model provider and model than your base-config.
-Adjust parameters as needed.
-```
-
-<details>
-<summary><b>Alternative: Using LaunchDarkly UI</b></summary>
-
-- Go to **Variations** tab → **+ Add variation**
-- Create new variation with different model
-- Adjust parameters for comparison
-
-Learn more: [Creating variations](https://docs.launchdarkly.com/home/ai-configs/create-variation)
-
-</details>
-
-| Metric Name | Event Key | Type | What It Measures |
-|-------------|-----------|------|------------------|
-| **p95_total_user_latency** | `$ld:ai:duration:total` | P95 | Response speed |
-| **average_total_user_tokens** | `$ld:ai:tokens:total` | Average | Token usage |
-| **ai_cost_per_request** | `ai_cost_per_request` | Average | Dollar cost |
-| **Positive Feedback** | Built-in | Rate | User satisfaction |
-| **Negative Feedback** | Built-in | Rate | User complaints |
-
-<details>
-<summary><b>Detailed Metric Configuration</b></summary>
-
-**P95 Latency Setup:**
-1. Event key: `$ld:ai:duration:total`
-2. Type: Value/Size → Numeric, Aggregation: Sum
-3. Definition: P95, value, user, sum, "lower is better"
-4. Unit: `ms`, Name: `p95_total_user_latency`
-
-<figure style="margin: 20px 0;">
-  <img src="images/user_duration.png" alt="P95 Latency Configuration" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">P95 latency metric configuration</figcaption>
-</figure>
-
-**Token Tracking Setup:**
-- Event key: `$ld:ai:tokens:total`
-- Name: `average_total_user_tokens`
-- Aggregation: Average
-
-<figure style="margin: 20px 0;">
-  <img src="images/tokens.png" alt="Token Metric Configuration" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Token usage metric configuration</figcaption>
-</figure>
-
-**Cost Tracking Setup:**
-- Event key: `ai_cost_per_request`
-- Name: `ai_cost_per_request`
-- Aggregation: Average in dollars
-
-<figure style="margin: 20px 0;">
-  <img src="images/cost.png" alt="Cost Metric Configuration" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Cost per request metric configuration</figcaption>
-</figure>
-
-</details>
-
-#### Add Model Variations
-
-Before creating your experiment, add a second variation to compare:
-
-**Using MCP Server:**
-```
-Add a variation to the pet-store-agent config called model-variant-2.
-Select a different model provider and model than your base-config.
-Adjust temperature and max_tokens parameters as needed.
-```
-
-<details>
-<summary><b>Alternative: Using LaunchDarkly UI</b></summary>
-
-- Go to **Variations** tab → **+ Add variation**
-- Create new variation with different model
-- Configure model provider, model name, and parameters
-
-</details>
+Before creating your experiment, add a second variation to compare (same process as above - just pick a different model).
 
 #### Configure Experiment
 
@@ -639,16 +559,11 @@ Navigate to **AI Configs → pet-store-agent**. In the right navigation menu, cl
 
 **Hypothesis and Metrics:**
 
-**Hypothesis:** `The alternative model will provide higher quality responses for complex queries, justifying potential cost differences with improved user satisfaction and fewer errors.`
+**Hypothesis:** `The alternative model will provide better token efficiency for our pet store queries.`
 
 **Randomize by:** `user`
 
-**Metrics:** Click "Select metrics or metric groups" and add:
-1. `Positive feedback rate` → Select first to set as **Primary**
-2. `Negative feedback rate`
-3. `p95_total_user_latency`
-4. `average_total_user_tokens`
-5. `ai_cost_per_request`
+**Metrics:** Click "Select metrics or metric groups" and add `average_total_user_tokens` (this is automatically tracked when you use `tracker.track_tokens()` in your code)
 
 **Audience Targeting:**
 
@@ -683,7 +598,7 @@ Click **"Save"** then **"Start experiment"** to launch.
 
 <figure style="margin: 20px 0;">
   <img src="images/premium_model.png" alt="Experiment Configuration Example" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Example experiment configuration in LaunchDarkly</figcaption>
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">Example experiment configuration in LaunchDarkly</figcaption>
 </figure>
 
 **Note:** You may see a "Health warning" indicator after starting the experiment. This is normal when no variations have been exposed yet. The warning will clear once traffic starts flowing.
@@ -716,35 +631,14 @@ for i in range(50):
     response = agent.invoke(random.choice(prompts), context)
 ```
 
-**7b.** Analyze AI Experiment metrics in the LaunchDarkly console
+**7b.** Check your results in the LaunchDarkly console
 
-Navigate to your experiment and click the **Results** tab. Monitor:
-
-- **Sample size accumulation**: Ensure you have enough data (typically 100+ users per variation)
-- **Statistical significance**: Check probability to beat baseline for each metric
-- **Confidence intervals**: Review the range of likely outcomes
-- **Winning variation probability**: LaunchDarkly shows which variation is likely to win
+Navigate to your experiment and click the **Results** tab to see which model is more token-efficient.
 
 <figure style="margin: 20px 0;">
   <img src="images/premium_results.png" alt="Experiment Results Analysis" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-  <figcaption style="margin-top: 8px; font-style: italic; color: #666;">Example experiment results showing metrics and statistical analysis</figcaption>
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">Example experiment results showing metrics and statistical analysis</figcaption>
 </figure>
-
-**Understanding Your Results:**
-
-- **Positive feedback rate**: Primary indicator of user satisfaction
-- **Cost per request**: Balance quality improvements against cost increases
-- **Latency (p95)**: Ensure response times remain acceptable
-- **Statistical confidence**: 90% threshold means 90% probability the effect is real
-
-**7c.** Review performance data and make your call
-
-Once you've collected enough data (typically 100+ requests per variation), check which model performs better on the metrics you care about. LaunchDarkly will show you probability scores and confidence levels.
-
-**Quick decision guide:**
-- Got a clear winner at ≥90% confidence? Ship it!
-- Results inconclusive? Let it run longer or try different variations
-- Want to learn more? Check out the [full experimentation guide](https://docs.launchdarkly.com/home/ai-configs/experimentation)
 
 ---
 
