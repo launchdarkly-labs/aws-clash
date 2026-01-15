@@ -5,19 +5,22 @@
   <figcaption style="margin-top: 8px; font-style: italic; color: #666;">LaunchDarkly Logo</figcaption>
 </figure>
 
-LaunchDarkly revolutionizes how builders and engineers approach AI development by bringing sophisticated experimentation capabilities directly into production environments. With LaunchDarkly's AI Configs, you gain unprecedented control over your AI systems through a specialized runtime management system that lets you dynamically control model selection and parameters from a central hub, target specific user segments with tailored AI configurations, run live experiments comparing different AI setups, and collect real-time feedback and metrics to continuously optimize performance. This isn't just feature flagging — it's a complete AI experimentation platform that empowers you to iterate fearlessly in production, test hypotheses with real users, and make data-driven decisions about which models and parameters deliver the best results. Whether you're fine-tuning prompt strategies, comparing models, or optimizing temperature settings for different user personas, LaunchDarkly gives you the confidence to experiment boldly while maintaining full control over your AI's behavior in production.
+LaunchDarkly's AI Configs let you swap models, tweak prompts, and test different configurations **without redeploying code**. Think of it as A/B testing for AI - change your model from Claude to GPT to Llama, adjust parameters on the fly, and see which setup actually performs best with real data. You can target specific users ("premium customers get the fancy model"), run controlled experiments, and track metrics like cost, latency, and quality. Make changes in a web UI and your agent instantly picks them up. No more guessing which model is best or hardcoding configurations. Just experiment, measure, and ship the winner. 🚀
 
-## Scenario
+## What You'll Build
 
-You are tasked to experiment between different AI models to determine which works better for Pet Store agents based on performance, cost, and user experience metrics.
+Your mission: Figure out which AI model actually works best for your Pet Store agent. Is Claude faster? Is GPT cheaper? Does Llama give better answers? Instead of guessing, you'll run a proper experiment with real data. Set up two (or more!) model variations, split traffic between them, and let the metrics tell you which one wins.
 
-## Success Criteria and Score Validation
+## What Success Looks Like
 
-- LaunchDarkly account configured with proper tokens
-- AI Config created with multiple model variations
-- Agent successfully instrumented to use LaunchDarkly AI Configs
-- Experiment running with measurable metrics
-- Data-driven decision on optimal model configuration
+By the end, you'll have:
+- ✅ LaunchDarkly account hooked up and ready to roll
+- ✅ An AI Config with at least 2 different model variations
+- ✅ Your agent code instrumented to grab configs from LaunchDarkly
+- ✅ A live experiment collecting real performance data
+- ✅ Actual metrics showing which model performs best (cost, speed, quality)
+
+**Pro tip:** This is one of the more straightforward competition sections - most of the code patterns are already written for you. Plus, you get to play with multiple AI models without writing a ton of code. Win-win!
 
 ## Build Your First AI Experiment: LaunchDarkly Demo
 
@@ -27,15 +30,15 @@ You are tasked to experiment between different AI models to determine which work
 
 ## Steps
 
-### 1. Sign Up to LaunchDarkly and Configure Access
+### 1. Get Your LaunchDarkly Account Set Up
 
-#### Understanding Token Types
+#### Quick Token Explainer
 
-LaunchDarkly uses two types of keys:
-- **API Access Token** (starts with `api-`): Used by MCP server in your IDE to create/manage AI Configs programmatically
-- **SDK Key** (starts with `sdk-`): Used in your agent code to retrieve AI configurations at runtime
+You'll need two kinds of keys (don't worry, it's simple):
+- **API Access Token** (starts with `api-`): Lets your IDE talk to LaunchDarkly to create and edit AI Configs
+- **SDK Key** (starts with `sdk-`): Your agent uses this to fetch configs at runtime
 
-Both are needed for the complete workflow.
+Grab both and you're golden. 👍
 
 **1a.** Create your LaunchDarkly account if you don't have one by going to [LaunchDarkly's signup page](https://launchdarkly.com)
 
@@ -127,9 +130,11 @@ Create/update your IDE's MCP configuration file:
 
 ---
 
-### 2. Create Your First AI Config
+### 2. Create Your First AI Config (The Fun Part!)
 
-**2a.** Create a new LaunchDarkly AI Config - Agent-based config with variations for different models
+**2a.** Time to create an AI Config! This is basically a template for your agent that includes which model to use, what temperature, system prompts, etc. You can create multiple "variations" and swap between them instantly.
+
+**The fastest way:** Just ask your IDE to do it for you (if you set up the MCP server).
 
 For a complete walkthrough, see the [AI Configs quickstart guide](https://docs.launchdarkly.com/home/ai-configs/quickstart).
 
@@ -177,9 +182,11 @@ See detailed instructions: [Creating AI Configs](https://docs.launchdarkly.com/h
 
 ---
 
-### 3. Instrument Your Agent
+### 3. Hook Up Your Agent Code
 
-**3a.** Integrate LaunchDarkly AI Configs SDK into your AI Agent code
+**3a.** Now we connect your agent to LaunchDarkly so it can grab configs at runtime. Sounds scary but it's actually a pretty simple pattern - you'll basically add ~20 lines of code.
+
+**The pattern is the same for every framework:** Initialize LaunchDarkly → Build a user context → Fetch the config → Use it to set up your model → Track some metrics.
 
 For comprehensive SDK documentation, see:
 - [Python AI SDK](https://docs.launchdarkly.com/sdk/ai/python)
@@ -260,9 +267,7 @@ def build_tools_from_config(tools_config, global_config, aws_region):
     return tools
 ```
 
-**Step 5: Track Metrics Manually**
-
-Use manual tracking methods (not provider-specific):
+**Step 5: Track Metrics**
 
 ```python
 tracker = agent_config.tracker
@@ -354,7 +359,7 @@ class PetStoreAgent:
             checkpointer=self.checkpointer
         )
 
-        # Step 5: Track metrics manually
+        # Step 5: Track metrics
         try:
             import time
             start_time = time.time()
@@ -387,8 +392,6 @@ class PetStoreAgent:
             total += int(usage.get("total_tokens", 0) or 0)
         return TokenUsage(input=inp, output=out, total=total) if total else None
 ```
-
-Complete example: [pet_store_agent_full_ld.py](https://github.com/launchdarkly-labs/aws-clash/blob/main/agent/pet_store_agent/pet_store_agent_full_ld.py)
 
 </details>
 
@@ -465,8 +468,6 @@ class TeacherOrchestrator:
         return on_token_usage
 ```
 
-Complete example: [teacher_orchestrator.py](https://github.com/launchdarkly-labs/ai_config_strands/blob/main/teacher_orchestrator.py)
-
 </details>
 
 ---
@@ -533,9 +534,11 @@ For more details, see [Monitoring AI Configs](https://docs.launchdarkly.com/home
 
 ---
 
-### 6. Create an AI Experiment
+### 6. Run Your First AI Experiment (This Is Where It Gets Cool!)
 
-**6a.** Set up your first LaunchDarkly AI Experiment to compare model performance
+**6a.** Here's where the magic happens. You're going to run a proper A/B test between two models and watch real metrics roll in. It's like science, but for AI. 🧪
+
+**What you'll do:** Create variations with different models, split traffic 50/50, define metrics you care about (speed, cost, quality), and let LaunchDarkly track everything automatically.
 
 For detailed guidance, see [Experimenting with AI Configs](https://docs.launchdarkly.com/home/ai-configs/experimentation)
 
@@ -734,62 +737,22 @@ Navigate to your experiment and click the **Results** tab. Monitor:
 - **Latency (p95)**: Ensure response times remain acceptable
 - **Statistical confidence**: 90% threshold means 90% probability the effect is real
 
-**7c.** Review performance data and make optimization decisions
+**7c.** Review performance data and make your call
 
-**Decision Framework:**
+Once you've collected enough data (typically 100+ requests per variation), check which model performs better on the metrics you care about. LaunchDarkly will show you probability scores and confidence levels.
 
-| Scenario | Action |
-|----------|--------|
-| **Clear winner** (≥90% confidence, acceptable cost) | Roll out winning variation to all users |
-| **Inconclusive results** (< 90% confidence) | Collect more data or adjust variations |
-| **No significant difference** | Keep current model, test different parameters |
-| **Winner too expensive** | Iterate on prompt/parameters or test different model |
-
-**Reality Check:**
-
-- Low-variance metrics (latency, tokens) reach significance quickly (~1,000 samples)
-- High-variance metrics (cost, feedback) may need 5,000-10,000+ samples
-- You may not reach 90% on every metric—use strong signals on some metrics plus directional insights on others
-
-**Common Decision Patterns:**
-
-- **87-89% confidence + large effect size** → Often sufficient for deployment
-- **Conflicting metrics** → Consider whether cost increase justifies quality improvement
-- **System-wide effects** → A change to one agent may impact downstream agents (watch total cost)
+**Quick decision guide:**
+- Got a clear winner at ≥90% confidence? Ship it!
+- Results inconclusive? Let it run longer or try different variations
+- Want to learn more? Check out the [full experimentation guide](https://docs.launchdarkly.com/home/ai-configs/experimentation)
 
 ---
 
-## Troubleshooting
+## You're Done! 🎉
 
-### MCP Server Not Connecting
-- Verify API token has correct permissions (Writer or Developer role)
-- Check MCP configuration file syntax
-- Restart IDE after configuration changes
+Congrats - you just ran a professional-grade AI experiment! You can now swap models, run tests, and optimize your agent based on real data. Pretty powerful stuff.
 
-### SDK Key Not Working
-- Confirm you're using SDK key (starts with `sdk-`), not API token
-- Verify key is from correct environment
-- Check environment variable is set correctly
-
-### AI Config Not Returning Expected Variation
-- Check targeting rules order (evaluate top to bottom)
-- Verify context attributes match rule conditions
-- Use LaunchDarkly debugger to trace evaluation
-
-### Experiment Not Collecting Data
-- Verify experiment is in "Running" status
-- Ensure metrics are being tracked in agent code
-- Check user contexts are created correctly
-
----
-
-## Additional Resources
-
-### Documentation
-- [LaunchDarkly AI Configs](https://docs.launchdarkly.com/ai)
-- [LaunchDarkly MCP Server](https://launchdarkly.com/docs/home/getting-started/mcp)
-- [Tracking AI Metrics](https://docs.launchdarkly.com/sdk/features/tracking-ai-metrics)
-
-### Workshops & Tutorials
+**Want to go deeper?** Check out these resources:
+- [LaunchDarkly AI Configs docs](https://docs.launchdarkly.com/ai)
 - [LaunchDarkly AI Config with Amazon Bedrock Workshop](https://catalog.workshops.aws/launchdarkly-ai-config-bedrock/en-US)
-- [LaunchDarkly Multi-Agent Tutorial](https://github.com/launchdarkly-labs/devrel-agents-tutorial)
+- [Multi-Agent Tutorial](https://github.com/launchdarkly-labs/devrel-agents-tutorial)
