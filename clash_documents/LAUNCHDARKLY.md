@@ -42,8 +42,10 @@ Both are needed for the complete workflow.
 **1b.** Generate a LaunchDarkly API Access Token for MCP server and API calls
 - Navigate to **Organization Settings** → **Authorization** → **Create token**
 - **Name**: `workshop-mcp-token` (or any descriptive name)
-- **Role**: Select **Writer** or **LaunchDarkly Developer**
+- **Role**: Select **Writer** or **LaunchDarkly Developer** ([learn more about roles](https://docs.launchdarkly.com/home/account/role-concepts))
 - Copy and save this token immediately (only shown once)
+
+For detailed instructions, see [Creating API access tokens](https://docs.launchdarkly.com/home/account-security/api-access-tokens#creating-api-access-tokens)
 
 <figure style="margin: 20px 0;">
   <img src="images/api-token-create.png" alt="Create API Token" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
@@ -63,6 +65,8 @@ Both are needed for the complete workflow.
 **1c.** Retrieve the LaunchDarkly SDK Key from your environment
 - Navigate to **Project settings** → **Environments** → Select your environment
 - Copy the **SDK key** (starts with `sdk-`)
+
+For more details, see [Finding your SDK key](https://docs.launchdarkly.com/sdk/concepts/client-side-server-side#keys)
 
 <figure style="margin: 20px 0;">
   <img src="images/project_settings.png" alt="Access Project Settings" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
@@ -85,11 +89,14 @@ Both are needed for the complete workflow.
 
 **1e.** Configure LaunchDarkly MCP server in your IDE (optional but recommended)
 
+The Model Context Protocol (MCP) enables AI-powered IDEs to interact with LaunchDarkly using natural language. Learn more at [LaunchDarkly MCP Documentation](https://docs.launchdarkly.com/home/getting-started/mcp).
+
 **Initial Setup:**
 
 Create/update your IDE's MCP configuration file:
 - **For Cursor**: `~/.cursor/mcp.json`
 - **For Claude Desktop**: `claude_desktop_config.json`
+- **For AWS Kiro**: See [Kiro IDE documentation](https://kiro.dev/)
 
 ```json
 {
@@ -124,6 +131,8 @@ Create/update your IDE's MCP configuration file:
 
 **2a.** Create a new LaunchDarkly AI Config - Agent-based config with variations for different models
 
+For a complete walkthrough, see the [AI Configs quickstart guide](https://docs.launchdarkly.com/home/ai-configs/quickstart).
+
 **Using MCP Server (Recommended):**
 
 ```
@@ -136,6 +145,8 @@ Then enable targeting to serve the base-config variation by default.
 
 <details>
 <summary><b>Alternative: Using LaunchDarkly UI</b></summary>
+
+See detailed instructions: [Creating AI Configs](https://docs.launchdarkly.com/home/ai-configs/create) and [Agent-based configurations](https://docs.launchdarkly.com/home/ai-configs/agents)
 
 1. Navigate to **AI Configs** → **Create AI Config** → Select `🤖 Agent-based`
 2. Configure:
@@ -169,6 +180,11 @@ Then enable targeting to serve the base-config variation by default.
 ### 3. Instrument Your Agent
 
 **3a.** Integrate LaunchDarkly AI Configs SDK into your AI Agent code
+
+For comprehensive SDK documentation, see:
+- [Python AI SDK](https://docs.launchdarkly.com/sdk/ai/python)
+- [AI Config SDK feature guide](https://docs.launchdarkly.com/sdk/features/ai-config)
+- [Tracking AI metrics](https://docs.launchdarkly.com/sdk/features/ai-metrics)
 
 #### Install Dependencies
 
@@ -459,6 +475,8 @@ Complete example: [teacher_orchestrator.py](https://github.com/launchdarkly-labs
 
 **4a.** Modify your LaunchDarkly AI Config targeting to dynamically control which users receive configurations
 
+Learn more about [targeting AI Configs](https://docs.launchdarkly.com/home/ai-configs/target)
+
 **Using MCP Server:**
 
 ```
@@ -509,17 +527,37 @@ for test in test_cases:
 - Navigate to AI Configs → `pet-store-agent` → **Monitoring** tab
 - Observe: Request volume, token usage, response times, error rates, cost per variation
 
+For more details, see [Monitoring AI Configs](https://docs.launchdarkly.com/home/ai-configs/monitor)
+
 **5c.** Validate configuration changes in real-time to ensure targeting rules work as expected
 
 ---
 
 ### 6. Create an AI Experiment
 
-**6a.** Set up your first LaunchDarkly AI Experiment to compare model performance scientifically
+**6a.** Set up your first LaunchDarkly AI Experiment to compare model performance
 
-#### Configure Metrics
+For detailed guidance, see [Experimenting with AI Configs](https://docs.launchdarkly.com/home/ai-configs/experimentation)
 
-Before creating your experiment, set up the metrics you'll track. Navigate to **Metrics** in LaunchDarkly and create these custom metrics:
+#### Add Model Variations
+
+**Using MCP Server:**
+```
+Add a variation to the pet-store-agent config called model-variant-2.
+Select a different model provider and model than your base-config.
+Adjust parameters as needed.
+```
+
+<details>
+<summary><b>Alternative: Using LaunchDarkly UI</b></summary>
+
+- Go to **Variations** tab → **+ Add variation**
+- Create new variation with different model
+- Adjust parameters for comparison
+
+Learn more: [Creating variations](https://docs.launchdarkly.com/home/ai-configs/create-variation)
+
+</details>
 
 | Metric Name | Event Key | Type | What It Measures |
 |-------------|-----------|------|------------------|
