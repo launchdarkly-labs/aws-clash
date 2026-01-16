@@ -135,13 +135,16 @@ For a complete walkthrough, see the [AI Configs quickstart guide](https://docs.l
 
 **Using MCP Server (Recommended):**
 
-Ask your IDE to create an AI Config with the following configuration:
+Ask your IDE to create an AI Config:
 
 <details>
 <summary><b>Click to expand full AI Config JSON</b></summary>
 
 ```json
 {
+  "LD_PROJECT_KEY":"pet-store-agent",
+  "LAUNCHDARKLY_SDK_KEY":"sdk-your-saved-sdk-key",
+  "ai_config":{
   "key": "pet-store-agent",
   "name": "Pet Store Agent",
   "mode": "agent",
@@ -180,7 +183,7 @@ Ask your IDE to create an AI Config with the following configuration:
   "targeting": {
     "defaultVariation": "base-config"
   }
-}
+}}
 ```
 
 **Note:** Replace the Lambda function names with your actual CloudFormation output values.
@@ -196,6 +199,9 @@ If you're using Amazon Bedrock Knowledge Bases instead of LlamaIndex for RAG:
 
 ```json
 {
+  "LD_PROJECT_KEY":"pet-store-agent",
+  "LAUNCHDARKLY_SDK_KEY":"sdk-your-saved-sdk-key",
+  "ai_config":{
   "key": "pet-store-agent",
   "name": "Pet Store Agent",
   "mode": "agent",
@@ -237,7 +243,7 @@ If you're using Amazon Bedrock Knowledge Bases instead of LlamaIndex for RAG:
   "targeting": {
     "defaultVariation": "base-config"
   }
-}
+}}
 ```
 
 **Note:**
