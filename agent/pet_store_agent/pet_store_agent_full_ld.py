@@ -241,6 +241,17 @@ class PetStoreAgent:
         if rc.provider_name.lower() == "bedrock":
             from langchain_aws import ChatBedrockConverse
 
+            # For Bedrock models, add cross-region inference profile prefix if needed
+            model_id = rc.model_name
+            if not model_id.startswith("us.") and not model_id.startswith("eu."):
+                # Add cross-region prefix based on region
+                if aws_region.startswith("us-"):
+                    model_id = f"us.{model_id}"
+                    logger.info(f"Added cross-region prefix: {model_id}")
+                elif aws_region.startswith("eu-"):
+                    model_id = f"eu.{model_id}"
+                    logger.info(f"Added cross-region prefix: {model_id}")
+
             # Create boto3 session with explicit profile if set
             if os.environ.get('AWS_PROFILE'):
                 logger.info(f"Using AWS Profile: {os.environ.get('AWS_PROFILE')}")
@@ -261,7 +272,7 @@ class PetStoreAgent:
 
             # Use ChatBedrockConverse directly with the configured client
             return ChatBedrockConverse(
-                model=rc.model_name,
+                model=model_id,
                 client=bedrock_client,
                 temperature=temperature,
                 max_tokens=max_tokens
