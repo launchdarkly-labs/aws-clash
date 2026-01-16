@@ -505,19 +505,63 @@ OTEL_PYTHON_CONFIGURATOR=aws_configurator
 AGENT_OBSERVABILITY_ENABLED=true
 ```
 
-### LaunchDarkly Custom Parameters
+### LaunchDarkly Configuration via MCP Server
 
-Add these to your AI Config custom parameters for Lambda functions:
+Use the MCP server format to create your AI Config. Ask your IDE:
+
+> Create an AI Config in LaunchDarkly with this configuration:
 
 ```json
 {
-  "lambda_inventory_function": "PetStoreInventoryManagement",
-  "lambda_user_function": "PetStoreUserManagement",
-  "retrieval_backend": "llamaindex",
-  "retrieval_num_results": 8,
-  "llamaindex_storage_dir": "./storage"
+  "LD_PROJECT_KEY": "pet-store-agent",
+  "ai_config": {
+    "key": "pet-store-agent",
+    "name": "Pet Store Agent",
+    "mode": "agent"
+  },
+  "variation": {
+    "key": "base-config",
+    "name": "Base Config",
+    "modelConfigKey": "Bedrock.amazon.nova-pro-v1:0",
+    "instructions": "<your full agent instructions>",
+    "tools": [
+      {"key": "retrieve_product_info", "version": 1},
+      {"key": "retrieve_pet_care", "version": 1},
+      {"key": "get_inventory", "version": 1},
+      {"key": "get_user_by_id", "version": 1},
+      {"key": "get_user_by_email", "version": 1}
+    ],
+    "customParameters": {
+      "aws_region": "us-west-2",
+      "temperature": 0.7,
+      "max_tokens": 4096,
+      "use_real_lambda": true,
+      "lambda_inventory_function": "team-PetStoreInventoryManagementFunction-XXX",
+      "lambda_user_function": "team-PetStoreUserManagementFunction-XXX",
+      "llamaindex_storage_dir": "./storage",
+      "llamaindex_similarity_top_k": 5
+    }
+  }
 }
 ```
+
+**For Bedrock Knowledge Bases version**, use:
+```json
+"customParameters": {
+  "aws_region": "us-west-2",
+  "temperature": 0.7,
+  "max_tokens": 4096,
+  "use_real_lambda": true,
+  "knowledge_base_1_id": "XXXXXXXXXX",
+  "knowledge_base_2_id": "YYYYYYYYYY",
+  "retrieval_num_results": 10,
+  "retrieval_score_threshold": 0.25,
+  "lambda_inventory_function": "team-PetStoreInventoryManagementFunction-XXX",
+  "lambda_user_function": "team-PetStoreUserManagementFunction-XXX"
+}
+```
+
+See `clash_documents/LAUNCHDARKLY.md` for complete configuration details and full instructions.
 
 ### IAM Permissions
 

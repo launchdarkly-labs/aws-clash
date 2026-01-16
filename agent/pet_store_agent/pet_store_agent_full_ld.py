@@ -10,7 +10,7 @@ import ldclient
 from ldclient import Context
 from ldclient.config import Config as LDConfig
 
-from ldai.client import LDAIClient, AIAgentConfigDefault, ModelConfig, ProviderConfig
+from ldai.client import LDAIClient, AIAgentConfigRequest, AIAgentConfigDefault
 from ldai.tracker import TokenUsage
 
 from langchain.chat_models import init_chat_model
@@ -30,12 +30,7 @@ logging.basicConfig(
 
 AGENT_KEY = os.getenv("LAUNCHDARKLY_AGENT_KEY", "pet-store-agent")
 
-DEFAULT_AGENT = AIAgentConfigDefault(
-    enabled=False,
-    model=ModelConfig("ERROR_MODEL_NOT_CONFIGURED"),
-    provider=ProviderConfig("ERROR_PROVIDER_NOT_CONFIGURED"),
-    instructions="ERROR: LaunchDarkly AI Config not found or disabled.",
-)
+DEFAULT_AGENT = AIAgentConfigDefault(enabled=False)
 
 @dataclass(frozen=True)
 class RuntimeConfig:
@@ -129,12 +124,14 @@ class PetStoreAgent:
             "userId": (user_ctx or {}).get("user_id") or "anonymous",
         }
 
-        agent = self.ai.agent_config(
-            AGENT_KEY,
-            ctx,
-            default_value=DEFAULT_AGENT,
-            variables=variables,
-        )  # :contentReference[oaicite:5]{index=5}
+        agent = self.ai.agent(
+            AIAgentConfigRequest(
+                key=AGENT_KEY,
+                default_value=DEFAULT_AGENT,
+                variables=variables
+            ),
+            ctx
+        )
 
         # The LaunchDarkly AI SDK stores tools and parameters differently
         # We need to extract them from the config properly

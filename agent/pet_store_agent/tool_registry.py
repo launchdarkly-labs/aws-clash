@@ -17,7 +17,12 @@ logger = logging.getLogger(__name__)
 def build_retrieve_product_info_tool(custom: Dict[str, Any], aws_region: str):
     """Build retrieve_product_info tool using LlamaIndex - ALWAYS uses real RAG"""
 
-    logger.info(f"🔧 Building retrieve_product_info with config: {json.dumps(custom, default=str)[:200]}")
+    # Get configuration from LaunchDarkly custom config
+    storage_dir_name = custom.get("llamaindex_storage_dir", "./storage")
+    similarity_top_k = int(custom.get("llamaindex_similarity_top_k", 5))
+
+    logger.info(f"🔧 Building retrieve_product_info with config:")
+    logger.info(f"   storage_dir: {storage_dir_name}, similarity_top_k: {similarity_top_k}")
 
     @tool
     def retrieve_product_info(query: str) -> str:
@@ -32,9 +37,9 @@ def build_retrieve_product_info_tool(custom: Dict[str, Any], aws_region: str):
         from llama_index.core import StorageContext, load_index_from_storage, Settings
         from llama_index.embeddings.bedrock import BedrockEmbedding
 
-        # Get the correct path to storage directory
+        # Get the correct path to storage directory from config
         current_dir = Path(__file__).parent
-        storage_dir = current_dir / "storage"
+        storage_dir = current_dir / storage_dir_name.lstrip("./")
 
         # Set up Bedrock embeddings explicitly with proper AWS session
         # Use profile if set
@@ -61,7 +66,7 @@ def build_retrieve_product_info_tool(custom: Dict[str, Any], aws_region: str):
         index = load_index_from_storage(storage_context)
 
         # Use retriever directly to avoid LLM requirement
-        retriever = index.as_retriever(similarity_top_k=3)
+        retriever = index.as_retriever(similarity_top_k=similarity_top_k)
         nodes = retriever.retrieve(query)
 
         # Combine the text from retrieved nodes
@@ -93,7 +98,13 @@ def build_retrieve_product_info_tool(custom: Dict[str, Any], aws_region: str):
 def build_retrieve_pet_care_tool(custom: Dict[str, Any], aws_region: str):
     """Build retrieve_pet_care tool using LlamaIndex - ALWAYS uses real RAG"""
 
-    logger.info(f"🔧 Building retrieve_pet_care with config: {json.dumps(custom, default=str)[:200]}")
+    # Get configuration from LaunchDarkly custom config
+    storage_dir_name = custom.get("llamaindex_storage_dir", "./storage")
+    petcare_storage_dir_name = custom.get("llamaindex_petcare_storage_dir", "./storage_petcare")
+    similarity_top_k = int(custom.get("llamaindex_similarity_top_k", 5))
+
+    logger.info(f"🔧 Building retrieve_pet_care with config:")
+    logger.info(f"   storage_dir: {storage_dir_name}, petcare_storage: {petcare_storage_dir_name}, similarity_top_k: {similarity_top_k}")
 
     @tool
     def retrieve_pet_care(query: str) -> str:
@@ -108,12 +119,12 @@ def build_retrieve_pet_care_tool(custom: Dict[str, Any], aws_region: str):
         from llama_index.core import StorageContext, load_index_from_storage, Settings
         from llama_index.embeddings.bedrock import BedrockEmbedding
 
-        # Get the correct path to storage directory
+        # Get the correct path to storage directory from config
         current_dir = Path(__file__).parent
 
         # Check if we have a separate pet care index, otherwise use main storage
-        petcare_storage = current_dir / "storage_petcare"
-        main_storage = current_dir / "storage"
+        petcare_storage = current_dir / petcare_storage_dir_name.lstrip("./")
+        main_storage = current_dir / storage_dir_name.lstrip("./")
 
         if petcare_storage.exists():
             storage_dir = petcare_storage
@@ -148,7 +159,7 @@ def build_retrieve_pet_care_tool(custom: Dict[str, Any], aws_region: str):
         index = load_index_from_storage(storage_context)
 
         # Use retriever directly to avoid LLM requirement
-        retriever = index.as_retriever(similarity_top_k=3)
+        retriever = index.as_retriever(similarity_top_k=similarity_top_k)
         nodes = retriever.retrieve(query)
 
         # Combine the text from retrieved nodes

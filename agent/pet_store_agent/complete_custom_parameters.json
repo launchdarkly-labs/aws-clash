@@ -1,0 +1,13 @@
+{
+  "custom": {
+    "aws_region": "us-west-2",
+    "temperature": 0.7,
+    "max_tokens": 4096,
+    "use_real_lambda": true,
+    "lambda_inventory_function": "team-PetStoreInventoryManagementFunction-XXX",
+    "lambda_user_function": "team-PetStoreUserManagementFunction-XXX",
+    "llamaindex_storage_dir": "./storage",
+    "llamaindex_petcare_storage_dir": "./storage_petcare",
+    "llamaindex_similarity_top_k": 5
+  }
+}
