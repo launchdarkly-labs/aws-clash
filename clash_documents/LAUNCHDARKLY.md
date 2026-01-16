@@ -186,7 +186,15 @@ Ask your IDE to create an AI Config:
 }}
 ```
 
-**Note:** Replace the Lambda function names with your actual CloudFormation output values.
+**Note:**
+- Replace Lambda function names with your actual CloudFormation output values
+- **RAG Tools** (LlamaIndex implementation):
+  - `retrieve_product_info` - Searches product catalog using LlamaIndex vector store
+  - `retrieve_pet_care` - Searches pet care knowledge using LlamaIndex vector store
+- **Lambda Tools** (same for all versions):
+  - `get_inventory` - Checks product inventory via Lambda
+  - `get_user_by_id` - Retrieves user info by ID via Lambda
+  - `get_user_by_email` - Retrieves user info by email via Lambda
 
 </details>
 
@@ -228,12 +236,10 @@ If you're using Amazon Bedrock Knowledge Bases instead of LlamaIndex for RAG:
         },
         "custom": {
           "aws_region": "us-west-2",
-          "use_bedrock_kb": true,
           "knowledge_base_1_id": "XXXXXXXXXX",
           "knowledge_base_2_id": "YYYYYYYYYY",
           "retrieval_num_results": 10,
           "retrieval_score_threshold": 0.25,
-          "use_real_lambda": true,
           "lambda_inventory_function": "team-PetStoreInventoryManagementFunction-XXX",
           "lambda_user_function": "team-PetStoreUserManagementFunction-XXX"
         }
@@ -247,10 +253,16 @@ If you're using Amazon Bedrock Knowledge Bases instead of LlamaIndex for RAG:
 ```
 
 **Note:**
-- Replace `knowledge_base_1_id` and `knowledge_base_2_id` with your CloudFormation outputs
-- Replace Lambda function names with your actual function names
-- Tools `ProductInformation` and `PetCaringKnowledge` will query Bedrock Knowledge Bases
-- Tools `get_inventory`, `get_user_by_id`, `get_user_by_email` will invoke Lambda functions
+- Replace `knowledge_base_1_id` and `knowledge_base_2_id` with your CloudFormation stack outputs
+- Replace Lambda function names with your actual function names from CloudFormation
+- **RAG Tools** (Bedrock Knowledge Bases):
+  - `ProductInformation` - Calls `bedrock-agent-runtime` API using `knowledge_base_1_id` for product catalog
+  - `PetCaringKnowledge` - Calls `bedrock-agent-runtime` API using `knowledge_base_2_id` for pet care
+  - Parameters: `retrieval_num_results` (default: 10), `retrieval_score_threshold` (default: 0.25)
+- **Lambda Tools** (same for all versions):
+  - `get_inventory` - Invokes Lambda using `lambda_inventory_function` name
+  - `get_user_by_id` - Invokes Lambda using `lambda_user_function` name
+  - `get_user_by_email` - Invokes Lambda using `lambda_user_function` name
 
 </details>
 
