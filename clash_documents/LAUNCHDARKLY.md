@@ -78,11 +78,6 @@ For more details, see [Finding your SDK key](https://docs.launchdarkly.com/sdk/c
 
 <figure style="margin: 20px 0;">
   <img src="images/image3.png" alt="Environments View" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
-  <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">Navigate to Environments tab and select your environment (Test or Production)</figcaption>
-</figure>
-
-<figure style="margin: 20px 0;">
-  <img src="images/sdk-key.png" alt="SDK Key Location" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
   <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">Copy the SDK key from the environment settings</figcaption>
 </figure>
 
@@ -162,9 +157,13 @@ See detailed instructions: [Creating AI Configs](https://docs.launchdarkly.com/h
    - **Model provider**: Select your preferred provider
    - **Model**: Select your preferred model
    - **Parameters**: Add temperature (0.7) and max_tokens (4096)
-4. Add your agent instructions in the **Goal or task** field
-5. Review and save
-6. Go to **Targeting** tab → Edit default rule → Select `base-config` → Save
+4. **(Optional) Attach tools** if you created them in step 2b:
+   - Click **Attach tools**
+   - Select relevant tools (e.g., ✅ search_product_catalog, ✅ getInventory, ✅ getUserById)
+   - This makes tools available dynamically based on LaunchDarkly configuration
+5. Add your agent instructions in the **Goal or task** field
+6. Review and save
+7. Go to **Targeting** tab → Edit default rule → Select `base-config` → Save
 
 <figure style="margin: 20px 0;">
   <img src="images/create_agent.png" alt="Create Agent Config" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
@@ -179,6 +178,311 @@ See detailed instructions: [Creating AI Configs](https://docs.launchdarkly.com/h
 </details>
 
 **Tip:** You can quickly create and iterate on AI Configs using LaunchDarkly's MCP server in your IDE.
+
+---
+
+### 2b. (Optional) Define Tools in LaunchDarkly
+
+**Do you need this step?** Only if you're using LangGraph, Strands, or other open-source frameworks and want to dynamically configure which tools your agent can use. If you're using Amazon Bedrock Agents with Knowledge Bases and Action Groups, **skip this section** - Bedrock handles tools differently.
+
+#### What Are LaunchDarkly Tools?
+
+LaunchDarkly tools are **schema definitions** that tell your agent code what tools are available and how to call them. Think of them as API contracts - you define the interface in LaunchDarkly, then implement the actual functionality in your code.
+
+**Key difference from Bedrock:**
+- **Bedrock Action Groups**: Live integrations with Lambda functions or AWS services - the tool execution happens on AWS
+- **LaunchDarkly Tools**: Configuration schemas only - your agent code implements and executes the tools locally
+
+#### Creating a Tool (UI Method)
+
+1. In the LaunchDarkly sidebar, click **Library** in the AI section
+2. Click the **Tools** tab
+3. Click **Create tool**
+
+<figure style="margin: 20px 0;">
+  <img src="images/library_tools.png" alt="AI Library Tools Section" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
+  <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">AI Library section with Tools tab</figcaption>
+</figure>
+
+4. Fill in the tool configuration using the examples below based on your framework
+
+<details>
+<summary><b>🦙 LlamaIndex RAG Tools</b></summary>
+
+If you're using LlamaIndex to build your own RAG pipeline with vector search, create these tool schemas:
+
+#### Tool 1: Search Product Catalog
+
+> **Key:**
+> ```
+> search_product_catalog
+> ```
+>
+> **Description:**
+> ```
+> Semantic search across Pet Store Product Catalog and Product Content PDFs using LlamaIndex vector store
+> ```
+>
+> **Schema:**
+> ```json
+> {
+>   "properties": {
+>     "query": {
+>       "description": "Search query for product information, pricing, descriptions, or specifications",
+>       "type": "string"
+>     },
+>     "top_k": {
+>       "description": "Number of results to return (default: 5)",
+>       "type": "number"
+>     }
+>   },
+>   "additionalProperties": false,
+>   "required": ["query"]
+> }
+> ```
+
+#### Tool 2: Search Pet Care Knowledge
+
+> **Key:**
+> ```
+> search_pet_care
+> ```
+>
+> **Description:**
+> ```
+> Semantic search across pet care knowledge from Wikipedia articles on cat food, cat toys, dog food, and dog grooming
+> ```
+>
+> **Schema:**
+> ```json
+> {
+>   "properties": {
+>     "query": {
+>       "description": "Question about cat or dog care, nutrition, grooming, or toys",
+>       "type": "string"
+>     },
+>     "pet_type": {
+>       "description": "Filter by pet type: 'cat', 'dog', or 'both'",
+>       "type": "string",
+>       "enum": ["cat", "dog", "both"]
+>     },
+>     "top_k": {
+>       "description": "Number of results to return (default: 3)",
+>       "type": "number"
+>     }
+>   },
+>   "additionalProperties": false,
+>   "required": ["query"]
+> }
+> ```
+
+#### Tool 3: Rerank Search Results
+
+> **Key:**
+> ```
+> rerank_results
+> ```
+>
+> **Description:**
+> ```
+> Reorders search results by relevance using LlamaIndex reranking or postprocessing
+> ```
+>
+> **Schema:**
+> ```json
+> {
+>   "properties": {
+>     "query": {
+>       "description": "Original search query for relevance scoring",
+>       "type": "string"
+>     },
+>     "results": {
+>       "description": "Array of search result texts to rerank",
+>       "type": "array",
+>       "items": {
+>         "type": "string"
+>       }
+>     },
+>     "top_n": {
+>       "description": "Number of top results to return after reranking (default: 3)",
+>       "type": "number"
+>     }
+>   },
+>   "additionalProperties": false,
+>   "required": ["query", "results"]
+> }
+> ```
+
+**Implementation Note:** Your agent code would use LlamaIndex's `VectorStoreIndex` and query engines to implement these tools. You'd create separate indexes for the product PDFs and pet care Wikipedia articles, then query them based on which tool is called.
+
+</details>
+
+<details>
+<summary><b>📦 Amazon Bedrock Knowledge Bases Tools</b></summary>
+
+If you're using Bedrock Knowledge Bases with open-source frameworks, create these tool schemas in LaunchDarkly:
+
+#### Tool 1: Query Product Information
+
+> **Key:**
+> ```
+> ProductInformation
+> ```
+>
+> **Description:**
+> ```
+> Searches the product catalog containing Pet Store Product Catalog and Product Content from the S3 bucket
+> ```
+>
+> **Schema:**
+> ```json
+> {
+>   "properties": {
+>     "query": {
+>       "description": "Search query for product descriptions, specifications, prices, or features",
+>       "type": "string"
+>     }
+>   },
+>   "additionalProperties": false,
+>   "required": ["query"]
+> }
+> ```
+
+#### Tool 2: Query Pet Care Knowledge
+
+> **Key:**
+> ```
+> PetCaringKnowledge
+> ```
+>
+> **Description:**
+> ```
+> Searches pet care advice knowledge base containing cat food, cat toys, dog food, and dog grooming information
+> ```
+>
+> **Schema:**
+> ```json
+> {
+>   "properties": {
+>     "query": {
+>       "description": "Question or topic about cat or dog care",
+>       "type": "string"
+>     }
+>   },
+>   "additionalProperties": false,
+>   "required": ["query"]
+> }
+> ```
+
+**Implementation Note:** Your agent code would call Bedrock Knowledge Base APIs using the knowledge base IDs from your CloudFormation stack outputs.
+
+</details>
+
+<details>
+<summary><b>⚡ Lambda Function Tools</b></summary>
+
+These tools integrate with the pre-configured Lambda functions in your AWS account:
+
+#### Tool 1: Get Inventory
+
+> **Key:**
+> ```
+> getInventory
+> ```
+>
+> **Description:**
+> ```
+> Retrieves product inventory levels and availability status from the inventory management system
+> ```
+>
+> **Schema:**
+> ```json
+> {
+>   "properties": {
+>     "product_code": {
+>       "description": "Product code to check inventory (e.g., 'CM001', 'DD006'). Leave empty to get all products.",
+>       "type": "string"
+>     }
+>   },
+>   "additionalProperties": false,
+>   "required": []
+> }
+> ```
+
+#### Tool 2: Get User by ID
+
+> **Key:**
+> ```
+> getUserById
+> ```
+>
+> **Description:**
+> ```
+> Retrieves customer profile, subscription status, and transaction history by user ID
+> ```
+>
+> **Schema:**
+> ```json
+> {
+>   "properties": {
+>     "user_id": {
+>       "description": "User ID to retrieve (e.g., 'usr_001', 'usr_002')",
+>       "type": "string"
+>     }
+>   },
+>   "additionalProperties": false,
+>   "required": ["user_id"]
+> }
+> ```
+
+#### Tool 3: Get User by Email
+
+> **Key:**
+> ```
+> getUserByEmail
+> ```
+>
+> **Description:**
+> ```
+> Retrieves customer profile, subscription status, and transaction history by email address
+> ```
+>
+> **Schema:**
+> ```json
+> {
+>   "properties": {
+>     "user_email": {
+>       "description": "Customer email address to lookup",
+>       "type": "string"
+>     }
+>   },
+>   "additionalProperties": false,
+>   "required": ["user_email"]
+> }
+> ```
+
+**Implementation Note:** Your agent code would invoke the Lambda functions:
+- `team-PetStoreInventoryManagementFunction-...` for inventory
+- `team-PetStoreUserManagementFunction-...` for user lookups
+
+Using boto3's Lambda client with the `team-SolutionAccessRole-...` IAM role.
+
+</details>
+
+5. Click **Save** after entering each tool configuration
+
+#### Attaching Tools to Your AI Config
+
+Once you've created tools, you can attach them to your AI Config:
+
+1. Navigate to your AI Config (e.g., `pet-store-agent`)
+2. In the model configuration section, click **Attach tools**
+3. Select the tools you want this agent to have access to (e.g., ✅ search_v2, ✅ reranking, ✅ get_inventory)
+4. Save your changes
+
+Now your agent code can fetch `agent_config.model.parameters.get("tools", [])` to see which tools are available and dynamically build the tool list based on LaunchDarkly configuration.
+
+**For the hackathon:** If you're using Bedrock Agents, you'll configure Knowledge Bases and Action Groups directly in the Bedrock console instead. LaunchDarkly tools are optional and mainly useful if you want to dynamically enable/disable tools without redeploying code.
 
 ---
 
@@ -544,7 +848,7 @@ For detailed guidance, see [Experimenting with AI Configs](https://docs.launchda
 
 #### Add Model Variations
 
-Before creating your experiment, add a second variation to compare (same process as above - just pick a different model).
+Before creating your experiment, add a second variation to compare (same process as step 2 - just pick a different model while keeping tools and parameters the same).
 
 #### Configure Experiment
 
