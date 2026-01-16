@@ -655,9 +655,13 @@ agent = ai_client.agent(
 )
 
 # Extract configuration
+# The agent object provides: enabled, instructions, model, provider, tracker
+# Model config uses private attributes _parameters and _custom
 model_name = agent.model.name
+provider_name = agent.provider.name
 instructions = agent.instructions
-parameters = agent.model.parameters
+parameters = agent.model._parameters if agent.model else {}
+custom = agent.model._custom if agent.model else {}
 tools_config = parameters.get("tools", [])
 tracker = agent.tracker
 ```
@@ -745,14 +749,17 @@ class PetStoreAgent:
         )
 
         # Extract configuration
+        # Access agent attributes directly as per LaunchDarkly Python AI SDK best practices
+        # Model config uses private attributes _parameters and _custom
         model_name = agent.model.name
         provider = agent.provider.name
         instructions = agent.instructions
-        parameters = agent.model.parameters
+        parameters = agent.model._parameters if agent.model else {}
+        custom = agent.model._custom if agent.model else {}
         tracker = agent.tracker
 
         # Step 4: Build tools dynamically
-        tools = self.build_tools(parameters.get("tools", []))
+        tools = self.build_tools(parameters.get("tools", []), custom)
 
         # Initialize LLM
         llm = init_chat_model(
@@ -771,6 +778,7 @@ class PetStoreAgent:
         )
 
         # Step 5: Track metrics
+        # Track duration manually as per LaunchDarkly Python AI SDK best practices
         try:
             import time
             start_time = time.time()
@@ -793,6 +801,11 @@ class PetStoreAgent:
         except Exception as e:
             tracker.track_error()
             raise
+        finally:
+            # Flush analytics events for short-lived Lambda contexts
+            # This ensures metrics are delivered to LaunchDarkly before the Lambda terminates
+            if os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+                ldclient.get().flush()
 
     def _collect_token_usage(self, messages):
         inp = out = total = 0
@@ -837,15 +850,19 @@ class PetStoreAgent:
             ctx
         )
 
+        # Access agent attributes directly as per LaunchDarkly Python AI SDK best practices
+        # Model config uses private attributes _parameters and _custom
         model_name = agent_config.model.name
         instructions = agent_config.instructions
+        parameters = agent_config.model._parameters if agent_config.model else {}
+        custom = agent_config.model._custom if agent_config.model else {}
         tracker = agent_config.tracker
 
         # Step 4: Build Strands agent
         agent = Agent(
             model=model_name,
             system_prompt=instructions,
-            tools=self.build_tools(agent_config.model.parameters.get("tools", []))
+            tools=self.build_tools(parameters.get("tools", []), custom)
         )
 
         # Step 5: Track metrics

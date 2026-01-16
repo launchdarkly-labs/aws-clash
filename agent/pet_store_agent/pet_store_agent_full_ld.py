@@ -133,20 +133,11 @@ class PetStoreAgent:
             ctx
         )
 
-        # The LaunchDarkly AI SDK stores tools and parameters differently
-        # We need to extract them from the config properly
-        # Convert to dict to see the actual structure
-        agent_dict = agent.to_dict() if hasattr(agent, 'to_dict') else {}
-
-        # Debug: Log the structure we receive
-        logger.debug(f"LaunchDarkly agent_dict structure: {json.dumps(agent_dict, indent=2, default=str)[:1000]}")
-
-        # Extract model config from the dict
-        model_config = agent_dict.get("model", {})
-
-        # Parameters and tools are in model.parameters in the LaunchDarkly config
-        parameters = model_config.get("parameters", {})
-        custom = model_config.get("custom", {})
+        # Access agent attributes directly as per LaunchDarkly Python AI SDK best practices
+        # The agent object provides: enabled, instructions, model, provider, tracker
+        # Model config uses private attributes _parameters and _custom
+        parameters = agent.model._parameters if agent.model else {}
+        custom = agent.model._custom if agent.model else {}
 
         # Log the custom config to see what's available
         logger.info(f"🔧 Global custom config from LaunchDarkly: {json.dumps(custom, default=str)[:500]}")
@@ -309,7 +300,14 @@ class PetStoreAgent:
         tracker = rc.tracker
         try:
             logger.info(f"Invoking agent with {len(tools)} tools available")
-            result = tracker.track_duration_of(lambda: graph.invoke(input_, config))
+
+            # Track duration manually as per LaunchDarkly Python AI SDK best practices
+            import time
+            start_time = time.time()
+            result = graph.invoke(input_, config)
+            duration_ms = int((time.time() - start_time) * 1000)
+
+            tracker.track_duration(duration_ms)
             tracker.track_success()
 
             usage = _collect_token_usage(result.get("messages", []))
@@ -349,8 +347,8 @@ def handler(event, _context):
 
     body = get_agent().invoke(prompt, user_ctx)
 
-    # If you care about analytics delivery in short-lived/serverless contexts,
-    # explicitly flushing can help. :contentReference[oaicite:8]{index=8}
-    # ldclient.get().flush()
+    # Flush analytics events for short-lived Lambda contexts
+    # This ensures metrics are delivered to LaunchDarkly before the Lambda terminates
+    ldclient.get().flush()
 
     return {"statusCode": 200, "body": body}
