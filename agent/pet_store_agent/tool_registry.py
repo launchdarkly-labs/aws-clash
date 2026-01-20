@@ -21,9 +21,6 @@ def build_retrieve_product_info_tool(custom: Dict[str, Any], aws_region: str):
     storage_dir_name = custom.get("llamaindex_storage_dir", "./storage")
     similarity_top_k = int(custom.get("llamaindex_similarity_top_k", 5))
 
-    logger.info(f"🔧 Building retrieve_product_info with config:")
-    logger.info(f"   storage_dir: {storage_dir_name}, similarity_top_k: {similarity_top_k}")
-
     @tool
     def retrieve_product_info(query: str) -> str:
         """Retrieve product information from the pet store catalog using LlamaIndex RAG.
@@ -41,18 +38,17 @@ def build_retrieve_product_info_tool(custom: Dict[str, Any], aws_region: str):
         current_dir = Path(__file__).parent
         storage_dir = current_dir / storage_dir_name.lstrip("./")
 
-        # Set up Bedrock embeddings explicitly with proper AWS session
-        # Use profile if set
+        # Set up Bedrock embeddings with AWS session
         if os.environ.get('AWS_PROFILE'):
             boto_session = boto3.Session(
                 profile_name=os.environ.get('AWS_PROFILE'),
-                region_name=aws_region or "us-east-1"
+                region_name=aws_region
             )
             bedrock_client = boto_session.client('bedrock-runtime')
         else:
             bedrock_client = boto3.client(
                 'bedrock-runtime',
-                region_name=aws_region or "us-east-1"
+                region_name=aws_region
             )
 
         embed_model = BedrockEmbedding(
@@ -86,10 +82,6 @@ def build_retrieve_product_info_tool(custom: Dict[str, Any], aws_region: str):
             ]
         }
 
-        logger.info(f"🔍 TOOL EXECUTION: retrieve_product_info")
-        logger.info(f"   Input: query='{query}'")
-        logger.info(f"   Output: Found {len(nodes)} nodes, content length: {len(content)} chars")
-        logger.debug(f"   Full output: {json.dumps(result, indent=2)[:500]}")
         return json.dumps(result)
 
     return retrieve_product_info
@@ -102,9 +94,6 @@ def build_retrieve_pet_care_tool(custom: Dict[str, Any], aws_region: str):
     storage_dir_name = custom.get("llamaindex_storage_dir", "./storage")
     petcare_storage_dir_name = custom.get("llamaindex_petcare_storage_dir", "./storage_petcare")
     similarity_top_k = int(custom.get("llamaindex_similarity_top_k", 5))
-
-    logger.info(f"🔧 Building retrieve_pet_care with config:")
-    logger.info(f"   storage_dir: {storage_dir_name}, petcare_storage: {petcare_storage_dir_name}, similarity_top_k: {similarity_top_k}")
 
     @tool
     def retrieve_pet_care(query: str) -> str:
@@ -134,18 +123,17 @@ def build_retrieve_pet_care_tool(custom: Dict[str, Any], aws_region: str):
             storage_dir = main_storage
             source = "Pet Store Product Documentation"
 
-        # Set up Bedrock embeddings explicitly with proper AWS session
-        # Use profile if set
+        # Set up Bedrock embeddings with AWS session
         if os.environ.get('AWS_PROFILE'):
             boto_session = boto3.Session(
                 profile_name=os.environ.get('AWS_PROFILE'),
-                region_name=aws_region or "us-east-1"
+                region_name=aws_region
             )
             bedrock_client = boto_session.client('bedrock-runtime')
         else:
             bedrock_client = boto3.client(
                 'bedrock-runtime',
-                region_name=aws_region or "us-east-1"
+                region_name=aws_region
             )
 
         embed_model = BedrockEmbedding(
@@ -179,10 +167,6 @@ def build_retrieve_pet_care_tool(custom: Dict[str, Any], aws_region: str):
             ]
         }
 
-        logger.info(f"🔍 TOOL EXECUTION: retrieve_pet_care")
-        logger.info(f"   Input: query='{query}'")
-        logger.info(f"   Output: Found {len(nodes)} nodes, content length: {len(content)} chars, source: {source}")
-        logger.debug(f"   Full output: {json.dumps(result, indent=2)[:500]}")
         return json.dumps(result)
 
     return retrieve_pet_care
@@ -202,8 +186,6 @@ def build_get_inventory_tool(custom: Dict[str, Any], aws_region: str):
                            custom.get("lambda_arn") or \
                            os.environ.get("INVENTORY_LAMBDA", "team-PetStoreInventoryManagementFunction")
 
-    logger.info(f"🔧 Building get_inventory with config: use_real_lambda={use_real_lambda}, lambda={lambda_function_name}")
-
     @tool
     def get_inventory(product_code: Optional[str] = None) -> str:
         """Get inventory information for products.
@@ -214,12 +196,8 @@ def build_get_inventory_tool(custom: Dict[str, Any], aws_region: str):
         Returns:
             JSON string with inventory information
         """
-        logger.info(f"🔍 TOOL EXECUTION: get_inventory")
-        logger.info(f"   Input: product_code='{product_code}'")
-
         if use_real_lambda:
             try:
-                # Call real Lambda function
                 lambda_client = boto3.client('lambda', region_name=aws_region)
 
                 payload = {
@@ -315,12 +293,9 @@ def build_get_inventory_tool(custom: Dict[str, Any], aws_region: str):
 
         if product_code:
             if product_code in inventory_data:
-                result = json.dumps(inventory_data[product_code])
-                logger.info(f"   Output: Found product {product_code}, price: ${inventory_data[product_code]['price']}")
-                return result
+                return json.dumps(inventory_data[product_code])
             else:
                 # Return unknown product
-                logger.info(f"   Output: Product {product_code} not found, returning out of stock")
                 return json.dumps({
                     "product_code": product_code,
                     "name": f"Product {product_code}",
@@ -331,7 +306,6 @@ def build_get_inventory_tool(custom: Dict[str, Any], aws_region: str):
                     "reorder_level": 20
                 })
         else:
-            logger.info(f"   Output: Returning all {len(inventory_data)} products")
             return json.dumps(list(inventory_data.values()))
 
     return get_inventory
@@ -350,8 +324,6 @@ def build_get_user_by_email_tool(custom: Dict[str, Any], aws_region: str):
                            custom.get("lambda_function_name") or \
                            custom.get("lambda_arn") or \
                            os.environ.get("USER_LAMBDA", "team-PetStoreUserManagementFunction")
-
-    logger.info(f"🔧 Building get_user_by_email with config: use_real_lambda={use_real_lambda}, lambda={lambda_function_name}")
 
     @tool
     def get_user_by_email(email: str) -> str:
@@ -436,8 +408,6 @@ def build_get_user_by_id_tool(custom: Dict[str, Any], aws_region: str):
                            custom.get("lambda_function_name") or \
                            custom.get("lambda_arn") or \
                            os.environ.get("USER_LAMBDA", "team-PetStoreUserManagementFunction")
-
-    logger.info(f"🔧 Building get_user_by_id with config: use_real_lambda={use_real_lambda}, lambda={lambda_function_name}")
 
     @tool
     def get_user_by_id(user_id: str) -> str:
@@ -525,18 +495,11 @@ def build_get_user_by_id_tool(custom: Dict[str, Any], aws_region: str):
     return get_user_by_id
 
 
-# Registry mapping tool names to their builder functions - matches LaunchDarkly tools exactly
+# Registry mapping tool names to their builder functions
 TOOL_BUILDERS = {
-    "retrieve_product_info": build_retrieve_product_info_tool,  # RAG - uses LlamaIndex
-    "retrieve_pet_care": build_retrieve_pet_care_tool,          # RAG - uses LlamaIndex
-    "get_inventory": build_get_inventory_tool,                  # Lambda/Mock
-    "get_user_by_email": build_get_user_by_email_tool,          # Lambda/Mock
-    "get_user_by_id": build_get_user_by_id_tool,                # Lambda/Mock
+    "retrieve_product_info": build_retrieve_product_info_tool,
+    "retrieve_pet_care": build_retrieve_pet_care_tool,
+    "get_inventory": build_get_inventory_tool,
+    "get_user_by_email": build_get_user_by_email_tool,
+    "get_user_by_id": build_get_user_by_id_tool,
 }
-
-
-# Log initialization
-logger.info(f"Tool registry initialized with tools: {list(TOOL_BUILDERS.keys())}")
-logger.info(f"RAG tools (LlamaIndex): retrieve_product_info, retrieve_pet_care")
-logger.info(f"Lambda tools (Mock/Real): get_inventory, get_user_by_email, get_user_by_id")
-logger.info(f"Configuration will be provided by LaunchDarkly or environment variables")

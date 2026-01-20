@@ -64,10 +64,6 @@ def _enabled_tool_names(rc: RuntimeConfig) -> Set[str]:
     tools = rc.parameters.get("tools") or []
     names = {t.get("name") for t in tools if isinstance(t, dict)}
     names.discard(None)
-
-    # Allow an explicit override list in custom if you want it.
-    if rc.custom.get("enabled_tools"):
-        return set(rc.custom["enabled_tools"])
     return names
 
 def _collect_token_usage(messages: List[Any]) -> Optional[TokenUsage]:
@@ -80,26 +76,6 @@ def _collect_token_usage(messages: List[Any]) -> Optional[TokenUsage]:
 
     return TokenUsage(input=inp, output=out, total=total) if total else None
 
-def _safe_json(text: str) -> str:
-    # Minimal “be forgiving” JSON wrapper; keep it simple.
-    try:
-        json.loads(text)
-        return text
-    except Exception:
-        pass
-
-    # Try to extract the first {...} block.
-    start = text.find("{")
-    end = text.rfind("}")
-    if start != -1 and end != -1 and end > start:
-        candidate = text[start : end + 1].strip()
-        try:
-            json.loads(candidate)
-            return candidate
-        except Exception:
-            pass
-
-    return json.dumps({"status": "Error", "message": "Invalid JSON response from model."})
 
 class PetStoreAgent:
     def __init__(self) -> None:
@@ -139,17 +115,6 @@ class PetStoreAgent:
         parameters = agent.model._parameters if agent.model else {}
         custom = agent.model._custom if agent.model else {}
 
-        # Log the custom config to see what's available
-        logger.info(f"🔧 Global custom config from LaunchDarkly: {json.dumps(custom, default=str)[:500]}")
-
-        # Log what we found for debugging
-        if parameters.get("tools"):
-            logger.info(f"✅ Found {len(parameters.get('tools', []))} tools in LaunchDarkly config")
-            for tool in parameters.get("tools", []):
-                if isinstance(tool, dict) and tool.get("name"):
-                    logger.info(f"   - Tool: {tool.get('name')}")
-        else:
-            logger.warning("⚠️ No tools found in LaunchDarkly config at model.parameters.tools")
 
         return RuntimeConfig(
             enabled=bool(agent.enabled),
@@ -163,70 +128,30 @@ class PetStoreAgent:
         )
 
     def build_tools(self, rc: RuntimeConfig) -> List[Any]:
-        # Get tools configuration from LaunchDarkly parameters
-        tool_configs = rc.parameters.get("tools", [])
-        aws_region = rc.custom.get("aws_region", os.getenv("AWS_DEFAULT_REGION", "us-east-1"))
+        # Get enabled tool names from LaunchDarkly config
+        enabled_tools = _enabled_tool_names(rc)
+        aws_region = rc.custom.get("aws_region") or os.getenv("AWS_DEFAULT_REGION", "us-east-1")
 
-        tools: List[Any] = []
-
-        # Build tools with their specific configurations from LaunchDarkly
-        for tool_config in tool_configs:
-            if not isinstance(tool_config, dict):
-                continue
-
-            name = tool_config.get("name")
-            if not name:
-                continue
-
-            builder = TOOL_BUILDERS.get(name)
+        # Build tool instances from registry
+        tools = []
+        for tool_name in enabled_tools:
+            builder = TOOL_BUILDERS.get(tool_name)
             if builder:
-                # Log the full tool config to understand structure
-                logger.debug(f"Full tool config for {name}: {json.dumps(tool_config, default=str)[:500]}")
+                tools.append(builder(rc.custom, aws_region))
 
-                # Extract tool-specific parameters - they might be at different levels
-                tool_custom = tool_config.get("custom", {})
-                tool_params = tool_config.get("parameters", {})
+        # Fallback for local testing when no tools configured
+        if not tools and os.getenv("ENABLE_FALLBACK_TOOLS", "true").lower() == "true":
+            tools.append(TOOL_BUILDERS["get_inventory"]({}, aws_region))
+            if "retrieve_product_info" in TOOL_BUILDERS:
+                tools.append(TOOL_BUILDERS["retrieve_product_info"]({}, aws_region))
 
-                # Merge all configs: global custom, tool params, tool custom
-                merged_config = {**rc.custom, **tool_params, **tool_custom}
-
-                # Log detailed configuration
-                logger.info(f"✅ Built tool '{name}'")
-                logger.info(f"   Tool parameters: {json.dumps(tool_params, default=str)[:200] if tool_params else 'None'}")
-                logger.info(f"   Tool custom: {json.dumps(tool_custom, default=str)[:200] if tool_custom else 'None'}")
-
-                # Log specific important fields
-                if name == "get_inventory":
-                    logger.info(f"   Lambda config: use_real={merged_config.get('use_real_lambda')}, "
-                               f"function={merged_config.get('lambda_inventory_function', 'Not set')}")
-                elif name in ["get_user_by_email", "get_user_by_id"]:
-                    logger.info(f"   Lambda config: use_real={merged_config.get('use_real_lambda')}, "
-                               f"function={merged_config.get('lambda_user_function', 'Not set')}")
-                else:
-                    logger.info(f"   RAG config: storage_dir={merged_config.get('llamaindex_storage_dir')}, "
-                               f"similarity_top_k={merged_config.get('llamaindex_similarity_top_k')}")
-
-                tools.append(builder(merged_config, aws_region))
-
-        if not tools:
-            logger.warning("No tools enabled for this variation. Using fallback tools for testing.")
-            # Add fallback tools for local testing
-            if os.getenv("ENABLE_FALLBACK_TOOLS", "true").lower() == "true":
-                logger.info("Enabling fallback tools with mock data")
-                # Pass empty config for fallback mode (uses mock data)
-                tools.append(TOOL_BUILDERS["get_inventory"]({}, aws_region))
-                if "retrieve_product_info" in TOOL_BUILDERS:
-                    tools.append(TOOL_BUILDERS["retrieve_product_info"]({}, aws_region))
         return tools
 
     def build_llm(self, rc: RuntimeConfig):
-        # Keep provider mapping in one place if you need it (like your example does).
+        # Custom config overrides model parameters, with defaults as fallback
         temperature = rc.custom.get("temperature", rc.parameters.get("temperature", 0.7))
         max_tokens = rc.custom.get("max_tokens", rc.parameters.get("max_tokens", 4096))
-        # Use AWS_DEFAULT_REGION if set, otherwise fall back to config or default
-        aws_region = os.getenv("AWS_DEFAULT_REGION") or rc.custom.get("aws_region", "us-east-1")
-
-        logger.info(f"Initializing LLM with model={rc.model_name}, provider={rc.provider_name}, region={aws_region}")
+        aws_region = rc.custom.get("aws_region") or os.getenv("AWS_DEFAULT_REGION", "us-east-1")
 
         # Handle Bedrock provider specially to ensure proper AWS credentials
         if rc.provider_name.lower() == "bedrock":
@@ -238,14 +163,11 @@ class PetStoreAgent:
                 # Add cross-region prefix based on region
                 if aws_region.startswith("us-"):
                     model_id = f"us.{model_id}"
-                    logger.info(f"Added cross-region prefix: {model_id}")
                 elif aws_region.startswith("eu-"):
                     model_id = f"eu.{model_id}"
-                    logger.info(f"Added cross-region prefix: {model_id}")
 
             # Create boto3 session with explicit profile if set
             if os.environ.get('AWS_PROFILE'):
-                logger.info(f"Using AWS Profile: {os.environ.get('AWS_PROFILE')}")
                 boto_session = boto3.Session(
                     profile_name=os.environ.get('AWS_PROFILE'),
                     region_name=aws_region
@@ -299,8 +221,6 @@ class PetStoreAgent:
 
         tracker = rc.tracker
         try:
-            logger.info(f"Invoking agent with {len(tools)} tools available")
-
             # Track duration manually as per LaunchDarkly Python AI SDK best practices
             import time
             start_time = time.time()
@@ -314,10 +234,10 @@ class PetStoreAgent:
             if usage:
                 tracker.track_tokens(usage)
 
-            # Return last AI message as JSON (competition-style)
+            # Return last AI message as JSON
             msgs = result.get("messages", [])
             last_ai = next((m for m in reversed(msgs) if isinstance(m, AIMessage)), None)
-            return _safe_json(last_ai.content if last_ai else "{}")
+            return last_ai.content if last_ai else json.dumps({"status": "Error", "message": "No response from agent."})
         except Exception as e:
             logger.error(f"Error during agent invocation: {str(e)}", exc_info=True)
             tracker.track_error()
