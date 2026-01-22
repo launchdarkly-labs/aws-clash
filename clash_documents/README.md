@@ -30,9 +30,8 @@ LD_AI_CONFIG_KEY=pet-store-agent # Optional (default)
 ## Options
 
 ```bash
-python3 verify_launchdarkly_setup.py --verbose              # Detailed output
-python3 verify_launchdarkly_setup.py --output results.json  # Export JSON
-python3 verify_launchdarkly_setup.py --project my-project   # Custom project
+python3 verify_launchdarkly_setup.py --verbose            # Detailed output
+python3 verify_launchdarkly_setup.py --project my-project # Custom project
 ```
 
 ## Scoring
