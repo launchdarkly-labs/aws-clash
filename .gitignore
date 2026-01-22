@@ -52,5 +52,10 @@ package/
 # Logs
 *.log
 
+# Verification results
+clash_documents/results.json
+clash_documents/verification_results.json
+clash_documents/competition_results.json
+
 # Competition reference materials (local only - CONTAINS SDK KEYS)
 competition_details/

@@ -7,6 +7,7 @@ Run this to test the agent locally before deploying to AgentCore
 import os
 import json
 import sys
+import ldclient
 from pet_store_agent_full_ld import PetStoreAgent
 
 def main():
@@ -99,6 +100,13 @@ def main():
             print("\n" + "-"*50 + "\n")
 
         print("\nTo run in interactive mode, use: python query_agent.py --interactive")
+
+    # Flush metrics to LaunchDarkly before exiting
+    ld_client = ldclient.get()
+    if ld_client.is_initialized():
+        ld_client.flush()
+        import time
+        time.sleep(1)
 
 if __name__ == "__main__":
     main()

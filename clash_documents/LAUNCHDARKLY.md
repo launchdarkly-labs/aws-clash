@@ -689,12 +689,9 @@ def build_tools_from_config(tools_config, global_config, aws_region):
 tracker = agent.tracker
 
 try:
-    import time
-    start_time = time.time()
-    result = agent.invoke(input_)
-    duration_ms = int((time.time() - start_time) * 1000)
+    # Use track_duration_of() wrapper for automatic duration tracking
+    result = tracker.track_duration_of(lambda: agent.invoke(input_))
 
-    tracker.track_duration(duration_ms)
     tracker.track_success()
 
     from ldai.tracker import TokenUsage
@@ -707,7 +704,8 @@ except Exception as e:
 ```
 
 **Available tracking methods:**
-- `tracker.track_duration(ms)` - Execution duration
+- `tracker.track_duration_of(callable)` - Wraps execution and automatically tracks duration
+- `tracker.track_duration(ms)` - Manual duration tracking (use track_duration_of() instead)
 - `tracker.track_success()` - Successful completions
 - `tracker.track_error()` - Errors
 - `tracker.track_tokens(TokenUsage(...))` - Token usage
@@ -778,18 +776,15 @@ class PetStoreAgent:
         )
 
         # Step 5: Track metrics
-        # Track duration manually as per LaunchDarkly Python AI SDK best practices
         try:
-            import time
-            start_time = time.time()
-
-            result = graph.invoke(
-                {"messages": [HumanMessage(content=prompt)]},
-                config={"configurable": {"thread_id": user_ctx.get("thread_id", "default")}}
+            # Use track_duration_of() wrapper for automatic duration tracking
+            result = tracker.track_duration_of(
+                lambda: graph.invoke(
+                    {"messages": [HumanMessage(content=prompt)]},
+                    config={"configurable": {"thread_id": user_ctx.get("thread_id", "default")}}
+                )
             )
 
-            duration_ms = int((time.time() - start_time) * 1000)
-            tracker.track_duration(duration_ms)
             tracker.track_success()
 
             # Extract token usage from messages
@@ -866,16 +861,15 @@ class PetStoreAgent:
         )
 
         # Step 5: Track metrics
-        start_time = time.time()
-
         try:
-            result = await agent.run(
-                prompt,
-                callbacks=[self._create_tracking_callback(tracker, start_time)]
+            # Use track_duration_of() wrapper for automatic duration tracking
+            result = tracker.track_duration_of(
+                lambda: await agent.run(
+                    prompt,
+                    callbacks=[self._create_tracking_callback(tracker)]
+                )
             )
 
-            duration_ms = int((time.time() - start_time) * 1000)
-            tracker.track_duration(duration_ms)
             tracker.track_success()
 
             return result
@@ -883,7 +877,7 @@ class PetStoreAgent:
             tracker.track_error()
             raise
 
-    def _create_tracking_callback(self, tracker, start_time):
+    def _create_tracking_callback(self, tracker):
         """Create callback for token tracking"""
         def on_token_usage(usage_data):
             if usage_data:
@@ -1021,16 +1015,16 @@ Navigate to **AI Configs → pet-store-agent**. In the right navigation menu, cl
 
 **Threshold:** `90%` (or 95% for mission-critical features)
 
-Click **"Save"** then **"Start experiment"** to launch.
+Click **"Save"** to create the experiment.
 
 <figure style="margin: 20px 0;">
   <img src="images/premium_model.png" alt="Experiment Configuration Example" width="600" style="border: 1px solid #ddd; border-radius: 4px; padding: 5px;">
   <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">Example experiment configuration in LaunchDarkly</figcaption>
 </figure>
 
-**Note:** You may see a "Health warning" indicator after starting the experiment. This is normal when no variations have been exposed yet. The warning will clear once traffic starts flowing.
+**IMPORTANT:** For this competition, **DO NOT start the experiment** yet. Just save the experiment configuration. Starting an experiment will modify your targeting rules, which may interfere with Step 4's targeting configuration. You'll get full credit for having a properly configured experiment, even if it's not running.
 
-**6b.** Generate experiment data by sending varied queries through your agent with different user contexts. Monitor the **Results** tab in your experiment to see metrics populate in real-time.
+**Note:** If you do start the experiment later, remember that it will take over the targeting configuration. You can stop it anytime to restore normal targeting.
 
 ---
 

@@ -2,7 +2,7 @@ import os
 import json
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Iterable, List, Set
+from typing import Any, Dict, Optional, List, Set
 from uuid import uuid4
 
 import boto3
@@ -221,13 +221,7 @@ class PetStoreAgent:
 
         tracker = rc.tracker
         try:
-            # Track duration manually as per LaunchDarkly Python AI SDK best practices
-            import time
-            start_time = time.time()
-            result = graph.invoke(input_, config)
-            duration_ms = int((time.time() - start_time) * 1000)
-
-            tracker.track_duration(duration_ms)
+            result = tracker.track_duration_of(lambda: graph.invoke(input_, config))
             tracker.track_success()
 
             usage = _collect_token_usage(result.get("messages", []))
