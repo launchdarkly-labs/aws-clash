@@ -5,7 +5,25 @@
   <figcaption style="margin-top: 8px; font-style: italic; color: #666; text-align: center;">LaunchDarkly Logo</figcaption>
 </figure>
 
-LaunchDarkly's AI Configs let you swap models, tweak prompts, and test different configurations **without redeploying code**. Think of it as A/B testing for AI - change your model from Claude to GPT to Llama, adjust parameters on the fly, and see which setup actually performs best with real data. You can target specific users ("premium customers get the fancy model"), run controlled experiments, and track token efficiency. Make changes in a web UI and your agent instantly picks them up. No more guessing which model is best or hardcoding configurations. Just experiment, measure, and ship the winner. 🚀
+LaunchDarkly's AI Configs let you swap models, tweak prompts, and test different configurations **without redeploying code**. Think of it as A/B testing for AI - change your model from Claude to GPT to Llama, adjust parameters on the fly, and see which setup actually performs best with real data. You can target specific users ("premium customers get the fancy model"), run controlled experiments, and track token efficiency. Make changes in a web UI and your agent instantly picks them up. No more guessing which model is best or hardcoding configurations. Just experiment, measure, and ship the winner.
+
+> **Claude Code Users:** This workshop supports **Claude Skills** - interactive slash commands that guide you through each step. Look for the `/aiconfig-*` skills throughout this guide. If you're using Cursor, Claude Desktop, or Kiro, you can use the MCP server instead.
+
+### Quick Reference: Claude Skills for AI Configs
+
+| Skill | Description |
+|-------|-------------|
+| `/aiconfig-projects` | Create a new LaunchDarkly project |
+| `/aiconfig-create` | Create an AI Config with variations |
+| `/aiconfig-sdk` | Instrument your Python app with the AI SDK |
+| `/aiconfig-ai-metrics` | Add AI metrics tracking |
+| `/aiconfig-targeting` | Configure targeting rules |
+| `/aiconfig-segments` | Create user segments for targeting |
+| `/aiconfig-tools` | Create and attach tools to configs |
+| `/aiconfig-variations` | Add/update variations in a config |
+| `/aiconfig-context-basic` | Build user contexts |
+| `/aiconfig-custom-metrics` | Track custom business metrics |
+| `/aiconfig-online-evals` | Set up LLM-as-a-judge evaluations |
 
 ## What You'll Build
 
@@ -85,7 +103,41 @@ For more details, see [Finding your SDK key](https://docs.launchdarkly.com/sdk/c
 - Add to AWS Secrets Manager in your AWS Account, OR
 - Set as environment variable: `export LAUNCHDARKLY_SDK_KEY="sdk-xxxxx"`
 
-**1e.** Configure LaunchDarkly MCP server in your IDE (optional but recommended)
+**1e.** Configure LaunchDarkly integration for your IDE
+
+You have two options for AI-powered interaction with LaunchDarkly:
+
+#### Option A: Claude Skills (Recommended for Claude Code users)
+
+If you're using **Claude Code** (Anthropic's CLI), you have access to built-in LaunchDarkly AI Config skills. These are slash commands that guide you through creating and managing AI Configs.
+
+**Available Skills:**
+- `/aiconfig-projects` - Create LaunchDarkly projects to organize your AI Configs
+- `/aiconfig-create` - Create a new AI Config with variations and model configurations
+- `/aiconfig-sdk` - Instrument your Python application with the LaunchDarkly AI SDK
+- `/aiconfig-ai-metrics` - Add AI metrics tracking to your codebase
+- `/aiconfig-targeting` - Configure targeting rules for A/B tests and rollouts
+- `/aiconfig-segments` - Create segments for targeting groups of users
+- `/aiconfig-tools` - Create and attach tools to your AI Configs
+- `/aiconfig-variations` - Manage variations within an AI Config
+- `/aiconfig-context-basic` - Build user contexts for targeting
+- `/aiconfig-context-advanced` - Advanced context patterns with cardinality controls
+- `/aiconfig-custom-metrics` - Create and track custom business metrics
+- `/aiconfig-online-evals` - Set up LLM-as-a-judge evaluations
+
+**To use a skill**, simply type the slash command in Claude Code:
+```
+/aiconfig-create
+```
+
+Claude will guide you through the process interactively, asking for your project key, configuration details, and generating the appropriate API calls.
+
+**Note:** Skills require your `LAUNCHDARKLY_ACCESS_TOKEN` environment variable to be set:
+```bash
+export LAUNCHDARKLY_ACCESS_TOKEN="api-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+```
+
+#### Option B: MCP Server (For Cursor, Claude Desktop, Kiro, etc.)
 
 The Model Context Protocol (MCP) enables AI-powered IDEs to interact with LaunchDarkly using natural language. Learn more at [LaunchDarkly MCP Documentation](https://docs.launchdarkly.com/home/getting-started/mcp).
 
@@ -129,13 +181,44 @@ Create/update your IDE's MCP configuration file:
 
 **2a.** Time to create an AI Config! This is basically a template for your agent that includes which model to use, what temperature, system prompts, etc. You can create multiple "variations" and swap between them instantly.
 
-**The fastest way:** Just ask your IDE to do it for you (if you set up the MCP server).
-
 For a complete walkthrough, see the [AI Configs quickstart guide](https://docs.launchdarkly.com/home/ai-configs/quickstart).
 
-**Using MCP Server (Recommended):**
+#### Using Claude Skills (Recommended for Claude Code users)
 
-Ask your IDE to create an AI Config:
+If you're using Claude Code, the fastest way is to use the built-in skills:
+
+**Step 1: Create a project (if you don't have one)**
+```
+/aiconfig-projects
+```
+This will guide you through creating a new LaunchDarkly project called `pet-store-agent`.
+
+**Step 2: Create your AI Config**
+```
+/aiconfig-create
+```
+Claude will walk you through:
+- Setting the project key (`pet-store-agent`)
+- Choosing agent mode vs completion mode
+- Configuring your model (e.g., `Bedrock.us.anthropic.claude-3-7-sonnet-20250219-v1:0`)
+- Adding your system instructions
+- Setting up custom parameters
+
+**Step 3: Add tools to your config**
+```
+/aiconfig-tools
+```
+This helps you create and attach tools like `retrieve_product_info`, `get_inventory`, etc.
+
+**Step 4: Add additional variations for experimentation**
+```
+/aiconfig-variations
+```
+Add a second model variation (e.g., Nova Pro) to compare performance.
+
+#### Using MCP Server
+
+If you're using Cursor, Claude Desktop, or another MCP-compatible IDE, ask your IDE to create an AI Config:
 
 <details>
 <summary><b>Click to expand full AI Config JSON for MCP Server</b></summary>
@@ -288,7 +371,7 @@ See detailed instructions: [Creating AI Configs](https://docs.launchdarkly.com/h
 
 </details>
 
-**Tip:** You can quickly create and iterate on AI Configs using LaunchDarkly's MCP server in your IDE.
+**Tip:** You can quickly create and iterate on AI Configs using Claude Skills (in Claude Code) or LaunchDarkly's MCP server (in Cursor/Claude Desktop).
 
 ---
 
@@ -603,6 +686,19 @@ Now your agent code can fetch `agent_config.model.parameters.get("tools", [])` t
 
 **The pattern is the same for every framework:** Initialize LaunchDarkly → Build a user context → Fetch the config → Use it to set up your model → Track some metrics.
 
+#### Using Claude Skills for SDK Integration
+
+If you're using Claude Code, the `/aiconfig-sdk` skill can help you instrument your code:
+```
+/aiconfig-sdk
+```
+
+This skill will:
+- Show you how to initialize the LaunchDarkly AI SDK
+- Generate code for fetching AI Configs in agent mode
+- Help you build user contexts with `/aiconfig-context-basic`
+- Add metrics tracking with `/aiconfig-ai-metrics`
+
 For comprehensive SDK documentation, see:
 - [Python AI SDK](https://docs.launchdarkly.com/sdk/ai/python)
 - [AI Config SDK feature guide](https://docs.launchdarkly.com/sdk/features/ai-config)
@@ -899,7 +995,24 @@ class PetStoreAgent:
 
 Learn more about [targeting AI Configs](https://docs.launchdarkly.com/home/ai-configs/target)
 
-**Using MCP Server:**
+#### Using Claude Skills (Recommended for Claude Code users)
+
+```
+/aiconfig-targeting
+```
+
+This skill will guide you through:
+- Adding targeting rules based on user attributes (e.g., `subscription_status`)
+- Setting up percentage rollouts for experiments
+- Configuring the default rule
+- Managing segment-based targeting
+
+You can also use `/aiconfig-segments` to create reusable user segments first:
+```
+/aiconfig-segments
+```
+
+#### Using MCP Server
 
 ```
 Update the pet-store-agent config targeting. Add a rule that serves base-config to users
@@ -925,7 +1038,7 @@ where subscription_status is "premium". Set the default rule to also serve base-
 
 </details>
 
-**4b.** Practice dynamic updates using your IDE's MCP server to quickly iterate on targeting rules
+**4b.** Practice dynamic updates using Claude Skills (`/aiconfig-targeting`) or your IDE's MCP server to quickly iterate on targeting rules
 
 ---
 
@@ -965,7 +1078,15 @@ For detailed guidance, see [Experimenting with AI Configs](https://docs.launchda
 
 #### Add Model Variations
 
-Before creating your experiment, add a second variation to compare (same process as step 2 - just pick a different model while keeping tools and parameters the same).
+Before creating your experiment, add a second variation to compare. Use Claude Skills or the MCP server:
+
+**Using Claude Skills:**
+```
+/aiconfig-variations
+```
+This will guide you through adding a new variation with a different model (e.g., Nova Pro) while keeping tools and parameters the same.
+
+**Using MCP Server or UI:** Same process as step 2 - just pick a different model while keeping tools and parameters the same.
 
 #### Configure Experiment
 
