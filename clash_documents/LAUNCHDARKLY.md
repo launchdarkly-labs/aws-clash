@@ -7,9 +7,9 @@
 
 LaunchDarkly's AI Configs let you swap models, tweak prompts, and test different configurations **without redeploying code**. Think of it as A/B testing for AI - change your model from Claude to GPT to Llama, adjust parameters on the fly, and see which setup actually performs best with real data. You can target specific users ("premium customers get the fancy model"), run controlled experiments, and track token efficiency. Make changes in a web UI and your agent instantly picks them up. No more guessing which model is best or hardcoding configurations. Just experiment, measure, and ship the winner.
 
-> **Claude Code Users:** This workshop supports **Claude Skills** - interactive slash commands that guide you through each step. Look for the `/aiconfig-*` skills throughout this guide. If you're using Cursor, Claude Desktop, or Kiro, you can use the MCP server instead.
+> **Agent Skills Available:** This workshop supports **Agent Skills** - interactive slash commands that guide you through each step. Agent Skills follow an open standard and work with any compatible editor (Claude Code, Cursor, Windsurf, VS Code with extensions, and more). Look for the `/aiconfig-*` skills throughout this guide. You can also use the MCP server as an alternative.
 
-### Quick Reference: Claude Skills for AI Configs
+### Quick Reference: Agent Skills for AI Configs
 
 | Skill | Description |
 |-------|-------------|
@@ -107,9 +107,14 @@ For more details, see [Finding your SDK key](https://docs.launchdarkly.com/sdk/c
 
 You have two options for AI-powered interaction with LaunchDarkly:
 
-#### Option A: Claude Skills (Recommended for Claude Code users)
+#### Option A: Agent Skills (Recommended for any compatible editor)
 
-If you're using **Claude Code** (Anthropic's CLI), you have access to built-in LaunchDarkly AI Config skills. These are slash commands that guide you through creating and managing AI Configs.
+Agent Skills are interactive slash commands that guide you through creating and managing AI Configs. They follow an **open standard** and work with any editor that supports agent skills, including:
+- **Claude Code** (Anthropic's CLI)
+- **Cursor** (with agent skills support)
+- **Windsurf**
+- **VS Code** (with compatible extensions)
+- Other editors supporting the agent skills standard
 
 **Available Skills:**
 - `/aiconfig-projects` - Create LaunchDarkly projects to organize your AI Configs
@@ -125,19 +130,19 @@ If you're using **Claude Code** (Anthropic's CLI), you have access to built-in L
 - `/aiconfig-custom-metrics` - Create and track custom business metrics
 - `/aiconfig-online-evals` - Set up LLM-as-a-judge evaluations
 
-**To use a skill**, simply type the slash command in Claude Code:
+**To use a skill**, simply type the slash command in your editor:
 ```
 /aiconfig-create
 ```
 
-Claude will guide you through the process interactively, asking for your project key, configuration details, and generating the appropriate API calls.
+Your AI assistant will guide you through the process interactively, asking for your project key, configuration details, and generating the appropriate API calls.
 
 **Note:** Skills require your `LAUNCHDARKLY_ACCESS_TOKEN` environment variable to be set:
 ```bash
 export LAUNCHDARKLY_ACCESS_TOKEN="api-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 ```
 
-#### Option B: MCP Server (For Cursor, Claude Desktop, Kiro, etc.)
+#### Option B: MCP Server (Alternative approach)
 
 The Model Context Protocol (MCP) enables AI-powered IDEs to interact with LaunchDarkly using natural language. Learn more at [LaunchDarkly MCP Documentation](https://docs.launchdarkly.com/home/getting-started/mcp).
 
@@ -183,9 +188,9 @@ Create/update your IDE's MCP configuration file:
 
 For a complete walkthrough, see the [AI Configs quickstart guide](https://docs.launchdarkly.com/home/ai-configs/quickstart).
 
-#### Using Claude Skills (Recommended for Claude Code users)
+#### Using Agent Skills (Recommended)
 
-If you're using Claude Code, the fastest way is to use the built-in skills:
+If your editor supports agent skills, the fastest way is to use the built-in skills:
 
 **Step 1: Create a project (if you don't have one)**
 ```
@@ -371,7 +376,7 @@ See detailed instructions: [Creating AI Configs](https://docs.launchdarkly.com/h
 
 </details>
 
-**Tip:** You can quickly create and iterate on AI Configs using Claude Skills (in Claude Code) or LaunchDarkly's MCP server (in Cursor/Claude Desktop).
+**Tip:** You can quickly create and iterate on AI Configs using Agent Skills (works in any compatible editor) or LaunchDarkly's MCP server.
 
 ---
 
@@ -686,9 +691,9 @@ Now your agent code can fetch `agent_config.model.parameters.get("tools", [])` t
 
 **The pattern is the same for every framework:** Initialize LaunchDarkly → Build a user context → Fetch the config → Use it to set up your model → Track some metrics.
 
-#### Using Claude Skills for SDK Integration
+#### Using Agent Skills for SDK Integration
 
-If you're using Claude Code, the `/aiconfig-sdk` skill can help you instrument your code:
+The `/aiconfig-sdk` skill can help you instrument your code:
 ```
 /aiconfig-sdk
 ```
@@ -995,7 +1000,7 @@ class PetStoreAgent:
 
 Learn more about [targeting AI Configs](https://docs.launchdarkly.com/home/ai-configs/target)
 
-#### Using Claude Skills (Recommended for Claude Code users)
+#### Using Agent Skills (Recommended)
 
 ```
 /aiconfig-targeting
@@ -1038,7 +1043,7 @@ where subscription_status is "premium". Set the default rule to also serve base-
 
 </details>
 
-**4b.** Practice dynamic updates using Claude Skills (`/aiconfig-targeting`) or your IDE's MCP server to quickly iterate on targeting rules
+**4b.** Practice dynamic updates using agent skills (`/aiconfig-targeting`) or your IDE's MCP server to quickly iterate on targeting rules
 
 ---
 
@@ -1078,9 +1083,9 @@ For detailed guidance, see [Experimenting with AI Configs](https://docs.launchda
 
 #### Add Model Variations
 
-Before creating your experiment, add a second variation to compare. Use Claude Skills or the MCP server:
+Before creating your experiment, add a second variation to compare. Use agent skills or the MCP server:
 
-**Using Claude Skills:**
+**Using Agent Skills:**
 ```
 /aiconfig-variations
 ```
