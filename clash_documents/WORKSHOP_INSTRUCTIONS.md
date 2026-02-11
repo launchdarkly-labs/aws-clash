@@ -679,35 +679,39 @@ def build_tools_from_config(tools_config, global_config, aws_region):
     return tools
 ```
 
-**Step 5: Track Metrics**
+**Step 5: Track Metrics (Automatic)**
+
+The tracker provides automatic methods that handle duration, tokens, and success tracking for you:
 
 ```python
-tracker = agent.tracker
+tracker = config.tracker
 
 try:
-    import time
-    start_time = time.time()
-    result = agent.invoke(input_)
-    duration_ms = int((time.time() - start_time) * 1000)
+    # Automatic duration tracking - wraps your call
+    response = tracker.track_duration_of(
+        lambda: bedrock.converse(
+            modelId=config.model.name,
+            messages=[{"role": "user", "content": [{"text": prompt}]}]
+        )
+    )
 
-    tracker.track_duration(duration_ms)
-    tracker.track_success()
+    # Automatic token + success tracking from Bedrock response
+    tracker.track_bedrock_converse_metrics(response)
 
-    from ldai.tracker import TokenUsage
-    usage = TokenUsage(input=100, output=200, total=300)
-    tracker.track_tokens(usage)
+    return response["output"]["message"]["content"][0]["text"]
 
 except Exception as e:
     tracker.track_error()
     raise
 ```
 
-**Available tracking methods:**
-- `tracker.track_duration(ms)` - Execution duration
-- `tracker.track_success()` - Successful completions
-- `tracker.track_error()` - Errors
-- `tracker.track_tokens(TokenUsage(...))` - Token usage
-- `tracker.track_time_to_first_token(ms)` - Latency
+**Automatic tracking methods:**
+| Method | What It Tracks |
+|--------|----------------|
+| `tracker.track_duration_of(fn)` | Wraps any callable, tracks duration automatically |
+| `tracker.track_bedrock_converse_metrics(response)` | Tokens + success from Bedrock Converse API |
+| `tracker.track_openai_metrics(fn)` | Tokens + duration + success for OpenAI |
+| `tracker.track_error()` | Mark as failed (use in exception handlers) |
 
 ##### Framework-Specific Instrumentation
 
@@ -772,44 +776,22 @@ class PetStoreAgent:
             checkpointer=self.checkpointer
         )
 
-        # Step 5: Track metrics
-        # Track duration manually as per LaunchDarkly Python AI SDK best practices
+        # Step 5: Track metrics (automatic)
         try:
-            import time
-            start_time = time.time()
-
-            result = graph.invoke(
-                {"messages": [HumanMessage(content=prompt)]},
-                config={"configurable": {"thread_id": user_ctx.get("thread_id", "default")}}
+            result = tracker.track_duration_of(
+                lambda: graph.invoke(
+                    {"messages": [HumanMessage(content=prompt)]},
+                    config={"configurable": {"thread_id": user_ctx.get("thread_id", "default")}}
+                )
             )
-
-            duration_ms = int((time.time() - start_time) * 1000)
-            tracker.track_duration(duration_ms)
             tracker.track_success()
-
-            # Extract token usage from messages
-            usage = self._collect_token_usage(result.get("messages", []))
-            if usage:
-                tracker.track_tokens(usage)
-
             return result
         except Exception as e:
             tracker.track_error()
             raise
         finally:
-            # Flush analytics events for short-lived Lambda contexts
-            # This ensures metrics are delivered to LaunchDarkly before the Lambda terminates
             if os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
                 ldclient.get().flush()
-
-    def _collect_token_usage(self, messages):
-        inp = out = total = 0
-        for m in messages:
-            usage = getattr(m, "usage_metadata", None) or {}
-            inp += int(usage.get("input_tokens", 0) or 0)
-            out += int(usage.get("output_tokens", 0) or 0)
-            total += int(usage.get("total_tokens", 0) or 0)
-        return TokenUsage(input=inp, output=out, total=total) if total else None
 ```
 
 **Strands Example:**
@@ -857,34 +839,16 @@ class PetStoreAgent:
             tools=self.build_tools(parameters.get("tools", []), custom)
         )
 
-        # Step 5: Track metrics
-        start_time = time.time()
-
+        # Step 5: Track metrics (automatic)
         try:
-            result = await agent.run(
-                prompt,
-                callbacks=[self._create_tracking_callback(tracker, start_time)]
+            result = tracker.track_duration_of(
+                lambda: agent.run(prompt)
             )
-
-            duration_ms = int((time.time() - start_time) * 1000)
-            tracker.track_duration(duration_ms)
             tracker.track_success()
-
             return result
         except Exception as e:
             tracker.track_error()
             raise
-
-    def _create_tracking_callback(self, tracker, start_time):
-        """Create callback for token tracking"""
-        def on_token_usage(usage_data):
-            if usage_data:
-                tracker.track_tokens(TokenUsage(
-                    input=usage_data.get("input_tokens", 0),
-                    output=usage_data.get("output_tokens", 0),
-                    total=usage_data.get("total_tokens", 0)
-                ))
-        return on_token_usage
 ```
 
 </details>
@@ -985,7 +949,7 @@ Navigate to **AI Configs** → `pet-store-agent`. In the right navigation menu, 
 
 - **Hypothesis:** The alternative model will provide better token efficiency for our pet store queries.
 - **Randomize by:** user
-- **Metrics:** Click "Select metrics or metric groups" and add `average_total_user_tokens` (this is automatically tracked when you use `tracker.track_tokens()` in your code)
+- **Metrics:** Click "Select metrics or metric groups" and add `average_total_user_tokens` (automatically tracked when using `track_bedrock_converse_metrics()` or `track_openai_metrics()`)
 
 **Audience Targeting:**
 
@@ -1237,38 +1201,26 @@ kb_id = custom.get("knowledge_base_1_id")
 
 **Solutions:**
 
-- Verify `tracker.track_tokens()` is called with valid TokenUsage
-- Ensure `tracker.track_success()` or `tracker.track_error()` is called
+- Use automatic tracking methods (`track_bedrock_converse_metrics`, `track_duration_of`)
 - For Lambda: Add `ldclient.get().flush()` before function returns
-- Check token counts are positive integers
 - Verify experiment is started (not paused)
 
-**Proper Tracking Pattern:**
+**Recommended Pattern (Bedrock):**
 
 ```python
-from ldai.tracker import TokenUsage
-
 try:
-    start_time = time.time()
-    result = agent.invoke(prompt)
-
-    duration_ms = int((time.time() - start_time) * 1000)
-    tracker.track_duration(duration_ms)
-    tracker.track_success()
-
-    # Extract actual token usage from response
-    usage = TokenUsage(
-        input=result.usage.input_tokens,
-        output=result.usage.output_tokens,
-        total=result.usage.total_tokens
+    response = tracker.track_duration_of(
+        lambda: bedrock.converse(
+            modelId=config.model.name,
+            messages=[{"role": "user", "content": [{"text": prompt}]}]
+        )
     )
-    tracker.track_tokens(usage)
+    tracker.track_bedrock_converse_metrics(response)  # Auto-tracks tokens + success
 
 except Exception as e:
     tracker.track_error()
     raise
 finally:
-    # Critical for Lambda/short-lived contexts
     if os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
         ldclient.get().flush()
 ```
@@ -1381,7 +1333,7 @@ def lambda_handler(event, context):
 - Tool schema mismatch
 
 **"No metrics tracked"**
-- Missing `tracker.track_tokens()` call
+- Missing automatic tracking call (e.g., `track_bedrock_converse_metrics()`)
 - Lambda not flushing events
 - Experiment not started
 
