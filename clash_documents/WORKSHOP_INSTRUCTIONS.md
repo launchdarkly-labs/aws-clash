@@ -229,60 +229,6 @@ Create an AI Config in LaunchDarkly with this configuration:
     "mode": "agent"
   },
   "variation": {
-    "key": "base-config",
-    "name": "Base Config",
-    "modelConfigKey": "Bedrock.anthropic.claude-3-7-sonnet-20250219-v1:0",
-    "instructions": "You are an online pet store assistant for staff. Your job is to analyze customer inputs, use the provided external tools and data sources as required, and then respond in json-only format following the schema below. Always maintain a warm and friendly tone in user message and pet advice fields.\n\n# Execution Plan:\n1. Analyze customer input and execute the next two steps (2 and 3) in parallel.\n2-a. Use UserManagement to identify user details and check if user is a subscribed customer.\n2-b. If the user is a subscribed customer, use PetCaringKnowledge if required to find pet caring details.\n3-a. Use ProductInformation to identify if we have any related product.\n3-b. For identified products, use InventoryManagement to find product inventory details.\n4. Generate final response in JSON based on all compiled information.\n\n# Business Rules:\nDon't ask for further information. You always need to generate a final response only.\nProduct identifiers are for internal use and must not appear in customer facing response messages.\nWhen preparing a customer response, use the customer's first name instead of user id or email address when possible.\nReturn Error status with a user-friendly message starting with \"We are sorry...\" when encountering internal issues - such as system errors or missing data.\nReturn Reject status with a user-friendly message starting with \"We are sorry...\" when requested products are unavailable.\nReturn Accept status with appropriate customer message when requested product is available.\nAlways avoid revealing technical system details in customer-facing message field when status is Accept, Error, or Reject.\nWhen an order can cause the remaining inventory to fall below or equal to the reorder level, flag that product for replenishment.\nOrders over $300 qualify for a 15% total discount. In addition, when buying multiple quantities of the same item, customers get 10% off on each additional unit (first item at regular price).\nShipping charges are determined by order total and item quantity. Orders $75 or above: receive free shipping. Orders under $75 with 2 items or fewer: incur $14.95 flat rate. Orders under $75 with 3 items or more: incur $19.95 flat rate.\nDesignate the customer type as Subscribed only when the user exists and maintains an active subscription. For all other cases, assume the customer type as Guest.\nFree pet care advice should only be provided when required to customers with active subscriptions in the allocated field for pet advice.\nFor each item included in an order, determine whether to trigger the inventory replenishment flag based on the projected inventory quantities that will remain after the current order is fulfilled.\n\n# Sample 1 Input:\nA new user is asking about the price of Doggy Delights?\n\n# Sample 1 Response:\n{\n    \"status\": \"Accept\",\n    \"message\": \"Dear Customer! We offer our 30lb bag of Doggy Delights for just $54.99. This premium grain-free dry dog food features real meat as the first ingredient, ensuring quality nutrition for your furry friend.\",\n    \"customerType\": \"Guest\",\n    \"items\": [\n        {\n        \"productId\": \"DD006\",\n        \"price\": 54.99,\n        \"quantity\": 1,\n        \"bundleDiscount\": 0,\n        \"total\": 54.99,\n        \"replenishInventory\": false\n        }\n    ],\n    \"shippingCost\": 14.95,\n    \"petAdvice\": \"\",\n    \"subtotal\": 69.94,\n    \"additionalDiscount\": 0,\n    \"total\": 69.94\n}\n\n# Sample 2 Input:\nCustomerId: usr_001\nCustomerRequest: I'm interested in purchasing two water bottles under your bundle deal. Would these bottles also be suitable for bathing my Chihuahua?\n\n# Sample 2 Response:\n{\n    \"status\": \"Accept\",\n    \"message\": \"Hi John, Thank you for your interest! Our Bark Park Buddy bottles are designed for hydration only, not for bathing. For your two-bottle bundle, you'll receive our 10% multi-unit discount as a valued subscriber.\",\n    \"customerType\": \"Subscribed\",\n    \"items\": [\n        {\n        \"productId\": \"BP010\",\n        \"price\": 16.99,\n        \"quantity\": 2,\n        \"bundleDiscount\": 0.10,\n        \"total\": 32.28,\n        \"replenishInventory\": false\n        }\n    ],\n    \"shippingCost\": 14.95,\n    \"petAdvice\": \"While these bottles are perfect for keeping your Chihuahua hydrated during walks with their convenient fold-out bowls, we recommend using a proper pet bath or sink with appropriate dog shampoo for bathing. The bottles are specifically designed for drinking purposes only.\",\n    \"subtotal\": 32.28,\n    \"additionalDiscount\": 0,\n    \"total\": 47.23\n}\n\n# Response Schema:\n{\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n  \"type\": \"object\",\n  \"required\": [\n    \"status\",\n    \"message\"\n  ],\n  \"properties\": {\n    \"status\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Accept\",\n        \"Reject\",\n        \"Error\"\n      ]\n    },\n    \"message\": {\n      \"type\": \"string\",\n      \"maxLength\": 250\n    },\n    \"customerType\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Guest\",\n        \"Subscribed\"\n      ]\n    },\n    \"items\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"productId\": {\n            \"type\": \"string\"\n          },\n          \"price\": {\n            \"type\": \"number\",\n            \"minimum\": 0\n          },\n          \"quantity\": {\n            \"type\": \"integer\",\n            \"minimum\": 1\n          },\n          \"bundleDiscount\": {\n            \"type\": \"number\",\n            \"minimum\": 0,\n            \"maximum\": 1\n          },\n          \"total\": {\n            \"type\": \"number\",\n            \"minimum\": 0\n          },\n          \"replenishInventory\": {\n            \"type\": \"boolean\"\n          }\n        }\n      }\n    },\n    \"shippingCost\": {\n      \"type\": \"number\",\n      \"minimum\": 0\n    },\n    \"petAdvice\": {\n      \"type\": \"string\",\n      \"maxLength\": 500\n    },\n    \"subtotal\": {\n      \"type\": \"number\",\n      \"minimum\": 0\n    },\n    \"additionalDiscount\": {\n      \"type\": \"number\",\n      \"minimum\": 0,\n      \"maximum\": 1\n    },\n    \"total\": {\n      \"type\": \"number\",\n      \"minimum\": 0\n    }\n  }\n}",
-    "tools": [
-      {"key": "retrieve_product_info", "version": 1},
-      {"key": "retrieve_pet_care", "version": 1},
-      {"key": "get_inventory", "version": 1},
-      {"key": "get_user_by_id", "version": 1},
-      {"key": "get_user_by_email", "version": 1}
-    ],
-    "customParameters": {
-      "aws_region": "us-west-2",
-      "temperature": 0.7,
-      "max_tokens": 4096,
-      "use_real_lambda": true,
-      "lambda_inventory_function": "team-PetStoreInventoryManagementFunction-XXX",
-      "lambda_user_function": "team-PetStoreUserManagementFunction-XXX",
-      "llamaindex_storage_dir": "./storage",
-      "llamaindex_similarity_top_k": 5
-    }
-  }
-}
-```
-
-**Note:**
-
-- Replace Lambda function names with your actual CloudFormation output values
-- The `modelConfigKey` format is `Provider.ModelId` (e.g., `Bedrock.anthropic.claude-3-7-sonnet-20250219-v1:0`)
-- **RAG Tools (LlamaIndex implementation):**
-  - `retrieve_product_info` - Searches product catalog using LlamaIndex vector store
-  - `retrieve_pet_care` - Searches pet care knowledge using LlamaIndex vector store
-- **Lambda Tools (same for all versions):**
-  - `get_inventory` - Checks product inventory via Lambda
-  - `get_user_by_id` - Retrieves user info by ID via Lambda
-  - `get_user_by_email` - Retrieves user info by email via Lambda
-
-Or simply ask your IDE: "Create an AI Config in project pet-store-agent with the configuration from the JSON above"
-
-**If you're using Amazon Bedrock Knowledge Bases instead of LlamaIndex for RAG**, use this configuration:
-
-```
-Create an AI Config in LaunchDarkly with this configuration:
-```
-
-```json
-{
-  "LD_PROJECT_KEY": "pet-store-agent",
-  "ai_config": {
-    "key": "pet-store-agent",
-    "name": "Pet Store Agent",
-    "mode": "agent"
-  },
-  "variation": {
     "key": "bedrock-kb-config",
     "name": "Base Config - Bedrock KB",
     "modelConfigKey": "Bedrock.anthropic.claude-3-7-sonnet-20250219-v1:0",
@@ -377,94 +323,9 @@ LaunchDarkly tools are schema definitions that tell your agent code what tools a
 1. In the LaunchDarkly sidebar, click **Library** in the AI section
 2. Click the **Tools** tab
 3. Click **Create tool**
-4. Fill in the tool configuration using the examples below based on your framework
+4. Fill in the tool configuration using the examples below
 
-**If you're using LlamaIndex** to build your own RAG pipeline with vector search, create these tool schemas:
-
-**Tool 1: Search Product Catalog**
-
-- **Key:** `search_product_catalog`
-- **Description:** Semantic search across Pet Store Product Catalog and Product Content PDFs using LlamaIndex vector store
-- **Schema:**
-
-```json
-{
-  "properties": {
-    "query": {
-      "description": "Search query for product information, pricing, descriptions, or specifications",
-      "type": "string"
-    },
-    "top_k": {
-      "description": "Number of results to return (default: 5)",
-      "type": "number"
-    }
-  },
-  "additionalProperties": false,
-  "required": ["query"]
-}
-```
-
-**Tool 2: Search Pet Care Knowledge**
-
-- **Key:** `search_pet_care`
-- **Description:** Semantic search across pet care knowledge from Wikipedia articles on cat food, cat toys, dog food, and dog grooming
-- **Schema:**
-
-```json
-{
-  "properties": {
-    "query": {
-      "description": "Question about cat or dog care, nutrition, grooming, or toys",
-      "type": "string"
-    },
-    "pet_type": {
-      "description": "Filter by pet type: 'cat', 'dog', or 'both'",
-      "type": "string",
-      "enum": ["cat", "dog", "both"]
-    },
-    "top_k": {
-      "description": "Number of results to return (default: 3)",
-      "type": "number"
-    }
-  },
-  "additionalProperties": false,
-  "required": ["query"]
-}
-```
-
-**Tool 3: Rerank Search Results**
-
-- **Key:** `rerank_results`
-- **Description:** Reorders search results by relevance using LlamaIndex reranking or postprocessing
-- **Schema:**
-
-```json
-{
-  "properties": {
-    "query": {
-      "description": "Original search query for relevance scoring",
-      "type": "string"
-    },
-    "results": {
-      "description": "Array of search result texts to rerank",
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "top_n": {
-      "description": "Number of top results to return after reranking (default: 3)",
-      "type": "number"
-    }
-  },
-  "additionalProperties": false,
-  "required": ["query", "results"]
-}
-```
-
-**Implementation Note:** Your agent code would use LlamaIndex's VectorStoreIndex and query engines to implement these tools. You'd create separate indexes for the product PDFs and pet care Wikipedia articles, then query them based on which tool is called.
-
-**If you're using Bedrock Knowledge Bases** with open-source frameworks, create these tool schemas in LaunchDarkly:
+**Bedrock Knowledge Bases Tools** - Create these tool schemas in LaunchDarkly:
 
 **Tool 1: Query Product Information**
 
@@ -1222,7 +1083,6 @@ kb_id = custom.get("knowledge_base_1_id")
 
 **Common Tool Issues:**
 
-- **LlamaIndex:** Ensure storage directory exists and is writable
 - **Bedrock KB:** Check IAM role has `bedrock:Retrieve` permissions
 - **Lambda:** Verify function names match CloudFormation outputs
 
