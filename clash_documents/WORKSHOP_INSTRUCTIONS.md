@@ -120,72 +120,48 @@ You can find exact key name in Events Outputs which are pre-created by CFN templ
 
 </details>
 
-#### 1e. Configure LaunchDarkly Agent Skills or MCP Server in your IDE
+#### 1e. Install LaunchDarkly Agent Skills and MCP Server (Recommended)
 
-LaunchDarkly provides two ways to interact with AI Configs from your IDE: **Agent Skills** and the **MCP Server**. Choose the option that works best for your setup.
+For the best experience, install **both** Agent Skills and the MCP Server. They complement each other:
+- **Agent Skills** teach your AI assistant LaunchDarkly workflows and best practices
+- **MCP Server** provides direct API access for creating and managing AI Configs
 
-<details>
-<summary><b>Option A: Install Agent Skills (Recommended for Cursor, Windsurf, and other AI-powered editors)</b></summary>
+##### Step 1: Install Agent Skills
 
-Agent Skills are text-based playbooks that teach your AI assistant LaunchDarkly workflows. They work with any editor that supports the [Agent Skills Open Standard](https://github.com/launchdarkly/agent-skills).
+Agent Skills are text-based playbooks that work with any editor supporting the [Agent Skills Open Standard](https://github.com/launchdarkly/agent-skills).
 
-**Step 1: Install the skills**
+**Clone the repository:**
 
-Open your editor and ask the AI assistant:
+```bash
+git clone https://github.com/launchdarkly/agent-skills.git
+```
+
+Or ask your AI assistant:
 
 ```
 Download and install skills from https://github.com/launchdarkly/agent-skills
 ```
 
-Expected output:
+**Verify installation:** Type `/aiconfig` in your editor - you should see autocomplete suggestions.
 
-```
-Cloning repository...
-Found 12 skills:
-  - aiconfig-create
-  - aiconfig-projects
-  - aiconfig-sdk
-  - aiconfig-tools
-  - aiconfig-targeting
-  ...
-Install globally or locally? [global/local]
-```
+##### Step 2: Install MCP Server
 
-Choose **global** if you want these skills available across all projects.
+The MCP Server enables direct LaunchDarkly API access from your IDE.
 
-**Step 2: Restart your editor**
-
-Close and reopen your editor. The skills load on startup.
-
-**How to verify:** Type `/aiconfig` in your editor. You should see autocomplete suggestions. Or ask "what LaunchDarkly skills do you have?" and the assistant should list them.
-
-**Step 3: Set your API token**
+**Repository:**
 
 ```bash
-export LAUNCHDARKLY_ACCESS_TOKEN="api-xxxxx"
+https://github.com/launchdarkly/mcp-server
 ```
 
-Get your token from [LaunchDarkly Authorization settings](https://app.launchdarkly.com/settings/authorization).
+**Configure your IDE's MCP settings:**
 
-**Required scopes:** writer role or custom role with `createAIConfig`, `createProject` permissions.
+| IDE | Config File |
+|-----|-------------|
+| Cursor | `~/.cursor/mcp.json` |
+| AWS Kiro | See [Kiro docs](https://kiro.dev/) |
 
-</details>
-
-<details>
-<summary><b>Option B: Configure MCP Server (Alternative for Cursor, Kiro, and other MCP-compatible editors)</b></summary>
-
-The Model Context Protocol (MCP) enables AI-powered IDEs to interact with LaunchDarkly using natural language. Learn more at [LaunchDarkly MCP Documentation](https://docs.launchdarkly.com/home/getting-started/mcp-server).
-
-LaunchDarkly MCP server configuration is already in Coder templates. You can update it with API key before provisioning your workspace(s). Check [Coder Guidance](https://catalog.workshops.aws/launchdarkly-ai-config-bedrock/en-US).
-
-If you are working with any other coding assistance, don't have it configured, or already provisioned Coder workspace, follow the guidance below to add MCP server or you can also update it at any time.
-
-**Initial Setup:**
-
-Create/update your IDE's MCP configuration file:
-
-- **For Cursor**: `~/.cursor/mcp.json`
-- **For AWS Kiro**: See [Kiro IDE documentation](https://kiro.dev/)
+**Add this configuration:**
 
 ```json
 {
@@ -207,36 +183,38 @@ Create/update your IDE's MCP configuration file:
 }
 ```
 
-**To Edit/Update MCP Configuration:**
+##### Step 3: Set your API token
 
-1. Open your MCP configuration file
-2. Update the `--api-key` value with your new token
-3. Add additional parameters like `--project` to specify a default project
-4. Save and restart your IDE
-5. Verify LaunchDarkly MCP server appears in your IDE's MCP server list
+```bash
+export LAUNCHDARKLY_ACCESS_TOKEN="api-xxxxx"
+```
 
-</details>
+Get your token from [LaunchDarkly Authorization settings](https://app.launchdarkly.com/settings/authorization). **Required:** Writer role.
+
+##### Step 4: Restart your editor
+
+Close and reopen your editor. Verify:
+- LaunchDarkly MCP server appears in your IDE's MCP server list
+- `/aiconfig` shows autocomplete suggestions
+
+Learn more: [LaunchDarkly MCP Documentation](https://docs.launchdarkly.com/home/getting-started/mcp-server)
 
 ---
 
 ### 2. Create Your First AI Config (The Fun Part!)
 
-#### 2a. Time to create an AI Config! Option 1: Using LaunchDarkly Agent Skills or MCP Server
+This is basically a template for your agent that includes which model to use, what temperature, system prompts, etc. You can create multiple "variations" and swap between them instantly.
+
+For a complete walkthrough, see the [AI Configs quickstart guide](https://docs.launchdarkly.com/home/ai-configs/quickstart).
+
+#### 2a. Using Agent Skills or MCP Server (Recommended)
 
 <details>
 <summary>Click to expand instruction details</summary>
 
-This is basically a template for your agent that includes which model to use, what temperature, system prompts, etc. You can create multiple "variations" and swap between them instantly.
+The fastest way: Just ask your IDE to do it for you.
 
-The fastest way: Just ask your IDE to do it for you (if you set up Agent Skills or the MCP server).
-
-For a complete walkthrough, see the [AI Configs quickstart guide](https://docs.launchdarkly.com/home/ai-configs/quickstart).
-
-**Using Agent Skills or MCP Server (Recommended):**
-
-Ask your IDE chat agent where you configured LaunchDarkly's Agent Skills or MCP server to create an AI Config:
-
-To create this AI Config, simply ask your IDE:
+Simply ask your IDE:
 
 ```
 Create an AI Config in LaunchDarkly with this configuration:
@@ -253,7 +231,7 @@ Create an AI Config in LaunchDarkly with this configuration:
   "variation": {
     "key": "base-config",
     "name": "Base Config",
-    "modelConfigKey": "Bedrock.us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+    "modelConfigKey": "Bedrock.anthropic.claude-3-7-sonnet-20250219-v1:0",
     "instructions": "You are an online pet store assistant for staff. Your job is to analyze customer inputs, use the provided external tools and data sources as required, and then respond in json-only format following the schema below. Always maintain a warm and friendly tone in user message and pet advice fields.\n\n# Execution Plan:\n1. Analyze customer input and execute the next two steps (2 and 3) in parallel.\n2-a. Use UserManagement to identify user details and check if user is a subscribed customer.\n2-b. If the user is a subscribed customer, use PetCaringKnowledge if required to find pet caring details.\n3-a. Use ProductInformation to identify if we have any related product.\n3-b. For identified products, use InventoryManagement to find product inventory details.\n4. Generate final response in JSON based on all compiled information.\n\n# Business Rules:\nDon't ask for further information. You always need to generate a final response only.\nProduct identifiers are for internal use and must not appear in customer facing response messages.\nWhen preparing a customer response, use the customer's first name instead of user id or email address when possible.\nReturn Error status with a user-friendly message starting with \"We are sorry...\" when encountering internal issues - such as system errors or missing data.\nReturn Reject status with a user-friendly message starting with \"We are sorry...\" when requested products are unavailable.\nReturn Accept status with appropriate customer message when requested product is available.\nAlways avoid revealing technical system details in customer-facing message field when status is Accept, Error, or Reject.\nWhen an order can cause the remaining inventory to fall below or equal to the reorder level, flag that product for replenishment.\nOrders over $300 qualify for a 15% total discount. In addition, when buying multiple quantities of the same item, customers get 10% off on each additional unit (first item at regular price).\nShipping charges are determined by order total and item quantity. Orders $75 or above: receive free shipping. Orders under $75 with 2 items or fewer: incur $14.95 flat rate. Orders under $75 with 3 items or more: incur $19.95 flat rate.\nDesignate the customer type as Subscribed only when the user exists and maintains an active subscription. For all other cases, assume the customer type as Guest.\nFree pet care advice should only be provided when required to customers with active subscriptions in the allocated field for pet advice.\nFor each item included in an order, determine whether to trigger the inventory replenishment flag based on the projected inventory quantities that will remain after the current order is fulfilled.\n\n# Sample 1 Input:\nA new user is asking about the price of Doggy Delights?\n\n# Sample 1 Response:\n{\n    \"status\": \"Accept\",\n    \"message\": \"Dear Customer! We offer our 30lb bag of Doggy Delights for just $54.99. This premium grain-free dry dog food features real meat as the first ingredient, ensuring quality nutrition for your furry friend.\",\n    \"customerType\": \"Guest\",\n    \"items\": [\n        {\n        \"productId\": \"DD006\",\n        \"price\": 54.99,\n        \"quantity\": 1,\n        \"bundleDiscount\": 0,\n        \"total\": 54.99,\n        \"replenishInventory\": false\n        }\n    ],\n    \"shippingCost\": 14.95,\n    \"petAdvice\": \"\",\n    \"subtotal\": 69.94,\n    \"additionalDiscount\": 0,\n    \"total\": 69.94\n}\n\n# Sample 2 Input:\nCustomerId: usr_001\nCustomerRequest: I'm interested in purchasing two water bottles under your bundle deal. Would these bottles also be suitable for bathing my Chihuahua?\n\n# Sample 2 Response:\n{\n    \"status\": \"Accept\",\n    \"message\": \"Hi John, Thank you for your interest! Our Bark Park Buddy bottles are designed for hydration only, not for bathing. For your two-bottle bundle, you'll receive our 10% multi-unit discount as a valued subscriber.\",\n    \"customerType\": \"Subscribed\",\n    \"items\": [\n        {\n        \"productId\": \"BP010\",\n        \"price\": 16.99,\n        \"quantity\": 2,\n        \"bundleDiscount\": 0.10,\n        \"total\": 32.28,\n        \"replenishInventory\": false\n        }\n    ],\n    \"shippingCost\": 14.95,\n    \"petAdvice\": \"While these bottles are perfect for keeping your Chihuahua hydrated during walks with their convenient fold-out bowls, we recommend using a proper pet bath or sink with appropriate dog shampoo for bathing. The bottles are specifically designed for drinking purposes only.\",\n    \"subtotal\": 32.28,\n    \"additionalDiscount\": 0,\n    \"total\": 47.23\n}\n\n# Response Schema:\n{\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n  \"type\": \"object\",\n  \"required\": [\n    \"status\",\n    \"message\"\n  ],\n  \"properties\": {\n    \"status\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Accept\",\n        \"Reject\",\n        \"Error\"\n      ]\n    },\n    \"message\": {\n      \"type\": \"string\",\n      \"maxLength\": 250\n    },\n    \"customerType\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Guest\",\n        \"Subscribed\"\n      ]\n    },\n    \"items\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"productId\": {\n            \"type\": \"string\"\n          },\n          \"price\": {\n            \"type\": \"number\",\n            \"minimum\": 0\n          },\n          \"quantity\": {\n            \"type\": \"integer\",\n            \"minimum\": 1\n          },\n          \"bundleDiscount\": {\n            \"type\": \"number\",\n            \"minimum\": 0,\n            \"maximum\": 1\n          },\n          \"total\": {\n            \"type\": \"number\",\n            \"minimum\": 0\n          },\n          \"replenishInventory\": {\n            \"type\": \"boolean\"\n          }\n        }\n      }\n    },\n    \"shippingCost\": {\n      \"type\": \"number\",\n      \"minimum\": 0\n    },\n    \"petAdvice\": {\n      \"type\": \"string\",\n      \"maxLength\": 500\n    },\n    \"subtotal\": {\n      \"type\": \"number\",\n      \"minimum\": 0\n    },\n    \"additionalDiscount\": {\n      \"type\": \"number\",\n      \"minimum\": 0,\n      \"maximum\": 1\n    },\n    \"total\": {\n      \"type\": \"number\",\n      \"minimum\": 0\n    }\n  }\n}",
     "tools": [
       {"key": "retrieve_product_info", "version": 1},
@@ -279,7 +257,7 @@ Create an AI Config in LaunchDarkly with this configuration:
 **Note:**
 
 - Replace Lambda function names with your actual CloudFormation output values
-- The `modelConfigKey` format is `Provider.ModelId` (e.g., `Bedrock.us.anthropic.claude-3-7-sonnet-20250219-v1:0`)
+- The `modelConfigKey` format is `Provider.ModelId` (e.g., `Bedrock.anthropic.claude-3-7-sonnet-20250219-v1:0`)
 - **RAG Tools (LlamaIndex implementation):**
   - `retrieve_product_info` - Searches product catalog using LlamaIndex vector store
   - `retrieve_pet_care` - Searches pet care knowledge using LlamaIndex vector store
@@ -307,7 +285,7 @@ Create an AI Config in LaunchDarkly with this configuration:
   "variation": {
     "key": "bedrock-kb-config",
     "name": "Base Config - Bedrock KB",
-    "modelConfigKey": "Bedrock.us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+    "modelConfigKey": "Bedrock.anthropic.claude-3-7-sonnet-20250219-v1:0",
     "instructions": "You are an online pet store assistant for staff. Your job is to analyze customer inputs, use the provided external tools and data sources as required, and then respond in json-only format following the schema below. Always maintain a warm and friendly tone in user message and pet advice fields.\n\n# Execution Plan:\n1. Analyze customer input and execute the next two steps (2 and 3) in parallel.\n2-a. Use UserManagement to identify user details and check if user is a subscribed customer.\n2-b. If the user is a subscribed customer, use PetCaringKnowledge if required to find pet caring details.\n3-a. Use ProductInformation to identify if we have any related product.\n3-b. For identified products, use InventoryManagement to find product inventory details.\n4. Generate final response in JSON based on all compiled information.\n\n# Business Rules:\nDon't ask for further information. You always need to generate a final response only.\nProduct identifiers are for internal use and must not appear in customer facing response messages.\nWhen preparing a customer response, use the customer's first name instead of user id or email address when possible.\nReturn Error status with a user-friendly message starting with \"We are sorry...\" when encountering internal issues - such as system errors or missing data.\nReturn Reject status with a user-friendly message starting with \"We are sorry...\" when requested products are unavailable.\nReturn Accept status with appropriate customer message when requested product is available.\nAlways avoid revealing technical system details in customer-facing message field when status is Accept, Error, or Reject.\nWhen an order can cause the remaining inventory to fall below or equal to the reorder level, flag that product for replenishment.\nOrders over $300 qualify for a 15% total discount. In addition, when buying multiple quantities of the same item, customers get 10% off on each additional unit (first item at regular price).\nShipping charges are determined by order total and item quantity. Orders $75 or above: receive free shipping. Orders under $75 with 2 items or fewer: incur $14.95 flat rate. Orders under $75 with 3 items or more: incur $19.95 flat rate.\nDesignate the customer type as Subscribed only when the user exists and maintains an active subscription. For all other cases, assume the customer type as Guest.\nFree pet care advice should only be provided when required to customers with active subscriptions in the allocated field for pet advice.\nFor each item included in an order, determine whether to trigger the inventory replenishment flag based on the projected inventory quantities that will remain after the current order is fulfilled.\n\n# Sample 1 Input:\nA new user is asking about the price of Doggy Delights?\n\n# Sample 1 Response:\n{\n    \"status\": \"Accept\",\n    \"message\": \"Dear Customer! We offer our 30lb bag of Doggy Delights for just $54.99. This premium grain-free dry dog food features real meat as the first ingredient, ensuring quality nutrition for your furry friend.\",\n    \"customerType\": \"Guest\",\n    \"items\": [\n        {\n        \"productId\": \"DD006\",\n        \"price\": 54.99,\n        \"quantity\": 1,\n        \"bundleDiscount\": 0,\n        \"total\": 54.99,\n        \"replenishInventory\": false\n        }\n    ],\n    \"shippingCost\": 14.95,\n    \"petAdvice\": \"\",\n    \"subtotal\": 69.94,\n    \"additionalDiscount\": 0,\n    \"total\": 69.94\n}\n\n# Sample 2 Input:\nCustomerId: usr_001\nCustomerRequest: I'm interested in purchasing two water bottles under your bundle deal. Would these bottles also be suitable for bathing my Chihuahua?\n\n# Sample 2 Response:\n{\n    \"status\": \"Accept\",\n    \"message\": \"Hi John, Thank you for your interest! Our Bark Park Buddy bottles are designed for hydration only, not for bathing. For your two-bottle bundle, you'll receive our 10% multi-unit discount as a valued subscriber.\",\n    \"customerType\": \"Subscribed\",\n    \"items\": [\n        {\n        \"productId\": \"BP010\",\n        \"price\": 16.99,\n        \"quantity\": 2,\n        \"bundleDiscount\": 0.10,\n        \"total\": 32.28,\n        \"replenishInventory\": false\n        }\n    ],\n    \"shippingCost\": 14.95,\n    \"petAdvice\": \"While these bottles are perfect for keeping your Chihuahua hydrated during walks with their convenient fold-out bowls, we recommend using a proper pet bath or sink with appropriate dog shampoo for bathing. The bottles are specifically designed for drinking purposes only.\",\n    \"subtotal\": 32.28,\n    \"additionalDiscount\": 0,\n    \"total\": 47.23\n}\n\n# Response Schema:\n{\n  \"$schema\": \"http://json-schema.org/draft-07/schema#\",\n  \"type\": \"object\",\n  \"required\": [\n    \"status\",\n    \"message\"\n  ],\n  \"properties\": {\n    \"status\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Accept\",\n        \"Reject\",\n        \"Error\"\n      ]\n    },\n    \"message\": {\n      \"type\": \"string\",\n      \"maxLength\": 250\n    },\n    \"customerType\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Guest\",\n        \"Subscribed\"\n      ]\n    },\n    \"items\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"productId\": {\n            \"type\": \"string\"\n          },\n          \"price\": {\n            \"type\": \"number\",\n            \"minimum\": 0\n          },\n          \"quantity\": {\n            \"type\": \"integer\",\n            \"minimum\": 1\n          },\n          \"bundleDiscount\": {\n            \"type\": \"number\",\n            \"minimum\": 0,\n            \"maximum\": 1\n          },\n          \"total\": {\n            \"type\": \"number\",\n            \"minimum\": 0\n          },\n          \"replenishInventory\": {\n            \"type\": \"boolean\"\n          }\n        }\n      }\n    },\n    \"shippingCost\": {\n      \"type\": \"number\",\n      \"minimum\": 0\n    },\n    \"petAdvice\": {\n      \"type\": \"string\",\n      \"maxLength\": 500\n    },\n    \"subtotal\": {\n      \"type\": \"number\",\n      \"minimum\": 0\n    },\n    \"additionalDiscount\": {\n      \"type\": \"number\",\n      \"minimum\": 0,\n      \"maximum\": 1\n    },\n    \"total\": {\n      \"type\": \"number\",\n      \"minimum\": 0\n    }\n  }\n}",
     "tools": [
       {"key": "ProductInformation", "version": 1},
@@ -348,7 +326,9 @@ Create an AI Config in LaunchDarkly with this configuration:
 
 </details>
 
-#### 2b. Time to create an AI Config! Option 2: Using LaunchDarkly console (skip if you used Agent Skills or MCP server for this on 2a)
+#### 2b. Alternative: Using LaunchDarkly Console
+
+Skip this section if you used Agent Skills or MCP Server in step 2a.
 
 <details>
 <summary>Click to expand instruction details</summary>
@@ -1195,7 +1175,7 @@ npx -y --package @launchdarkly/mcp-server -- mcp start --api-key api-xxxxx
 **Solutions:**
 
 - Verify `modelConfigKey` format: `Provider.ModelId`
-  - Bedrock: `Bedrock.us.anthropic.claude-3-7-sonnet-20250219-v1:0`
+  - Bedrock: `Bedrock.anthropic.claude-3-7-sonnet-20250219-v1:0`
   - OpenAI: `OpenAI.gpt-4`
 - Check model is available in your AWS region
 - Ensure model parameters are in correct location:
